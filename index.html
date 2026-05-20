@@ -291,6 +291,12 @@ function isRestr(day,p,date=null){
   if(date&&S.restricted.once.some(r=>r.date===date&&r.p===p))return true;
   return false;
 }
+// API 시간표 기준 수업 존재 여부: true=확인됨, false=없음(변경), null=API 데이터 없음
+function ttHasClass(date,p,g,b){
+  const entries=S.cache.tt[date];
+  if(!entries||!entries.length)return null;
+  return entries.some(e=>e.p===p&&String(e.g)===String(g)&&String(e.b)===String(b));
+}
 function getDatesFor(day){
   const res=[],end=new Date(S.semEnd||'2026-12-31');
   let cur=new Date();cur.setHours(0,0,0,0);
@@ -364,12 +370,17 @@ async function neisGet(ep,params){
 async function fetchTT(from,to){
   if(!S.school)return;
   const ep=NEIS_TT[S.school.type]||'hisTimetable';
-  const rows=await neisGet(ep,{ATPT_OFCDC_SC_CODE:S.school.atpt,SD_SCHUL_CODE:S.school.code,TI_FROM_YMD:toYMD(from),TI_TO_YMD:toYMD(to),pSize:2000});
-  for(const r of rows){
-    const raw=r.ALL_TI_YMD;if(!raw)continue;
-    const d=`${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
-    if(!S.cache.tt[d])S.cache.tt[d]=[];
-    S.cache.tt[d].push({p:parseInt(r.PERIO||0),g:r.GRADE,b:r.CLASS_NM,sub:(r.ITRT_CNTNT||'').trim()});
+  let pIndex=1;
+  while(true){
+    const rows=await neisGet(ep,{ATPT_OFCDC_SC_CODE:S.school.atpt,SD_SCHUL_CODE:S.school.code,TI_FROM_YMD:toYMD(from),TI_TO_YMD:toYMD(to),pSize:1000,pIndex});
+    for(const r of rows){
+      const raw=r.ALL_TI_YMD;if(!raw)continue;
+      const d=`${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
+      if(!S.cache.tt[d])S.cache.tt[d]=[];
+      S.cache.tt[d].push({p:parseInt(r.PERIO||0),g:r.GRADE,b:r.CLASS_NM,sub:(r.ITRT_CNTNT||'').trim()});
+    }
+    if(rows.length<1000)break;
+    pIndex++;
   }
 }
 
@@ -626,13 +637,23 @@ function selSlot(type,idx,day,p){
   if(!S.sel[`${type}${idx}`])S.sel[`${type}${idx}`]={};
   const sel=S.sel[`${type}${idx}`];
   sel.day=day;sel.p=p;sel.date=null;
+  const candList=type==='d'?findCandidates(_absDate,_absP).direct:findCandidates(_absDate,_absP).cascade;
+  const slot=candList[idx]?.slots.find(s=>s.day===day&&s.p===p);
+  sel.info=slot?.info;
   const dates=getDatesFor(day);
+  const hasApiData=Object.keys(S.cache.tt).length>0;
+  const chips=dates.slice(0,10).map(d=>{
+    const v=sel.info?ttHasClass(d,p,sel.info.g,sel.info.b):null;
+    const badge=v===true?`<span style="font-size:10px;color:var(--accent);margin-left:3px;">✓</span>`
+      :v===false?`<span style="font-size:10px;color:var(--danger);margin-left:3px;">✗변경</span>`:'';
+    return `<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}"
+      onclick="selDate('${type}',${idx},'${d}')" style="${v===false?'opacity:.45;border-color:#fca5a5;':''}">
+      ${fmtDate(d)}${badge}</button>`;
+  }).join('');
+  const legend=hasApiData?`<p style="font-size:10px;color:var(--muted);margin:5px 0 0;">✓ API 시간표 확인됨 &nbsp;✗변경 = 해당일 수업 없음(시간표 변경 의심)</p>`:'';
   const dsel=document.getElementById(`dsel-${type}${idx}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 5px;">${day}요일 날짜 선택:</p>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;">
-      ${dates.slice(0,10).map(d=>`<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}"
-        onclick="selDate('${type}',${idx},'${d}')">${fmtDate(d)}</button>`).join('')}
-    </div>`;
+    <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>${legend}`;
   dsel.style.display='block';
   if(type==='c'){const rv=document.getElementById(`rslv-${idx}`);if(rv)rv.style.display='none';}
 }
@@ -679,13 +700,19 @@ function selRslvSlot(parentIdx,ri,day,p){
   const sel=S.sel[`c${parentIdx}`];
   if(!sel._rslv)sel._rslv={};
   sel._rslv[ri]={day,p,date:null};
+  const resolvers=sel._resolvers||[];
+  const rslvSlotInfo=resolvers[ri]?.slots.find(s=>s.day===day&&s.p===p)?.info;
   const dates=getDatesFor(day);
+  const chips=dates.slice(0,10).map(d=>{
+    const v=rslvSlotInfo?ttHasClass(d,p,rslvSlotInfo.g,rslvSlotInfo.b):null;
+    const badge=v===true?`<span style="font-size:10px;color:var(--accent);margin-left:3px;">✓</span>`
+      :v===false?`<span style="font-size:10px;color:var(--danger);margin-left:3px;">✗변경</span>`:'';
+    return `<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}"
+      onclick="selRslvDate(${parentIdx},${ri},'${d}')" style="${v===false?'opacity:.45;border-color:#fca5a5;':''}">${fmtDate(d)}${badge}</button>`;
+  }).join('');
   const dsel=document.getElementById(`rdsel-${parentIdx}-${ri}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 4px;">${day}요일:</p>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;">
-      ${dates.slice(0,10).map(d=>`<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}"
-        onclick="selRslvDate(${parentIdx},${ri},'${d}')">${fmtDate(d)}</button>`).join('')}
-    </div>`;
+    <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>`;
   dsel.style.display='block';
 }
 
