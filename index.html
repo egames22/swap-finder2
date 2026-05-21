@@ -60,6 +60,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
     <button class="tab-btn" onclick="go('settings')" id="t-settings">⚙️ 설정</button>
     <button class="tab-btn" onclick="go('search')" id="t-search">🔍 탐색</button>
     <button class="tab-btn" onclick="go('results')" id="t-results">📋 결과</button>
+    <button class="tab-btn" onclick="go('cart')" id="t-cart">🛒 장바구니 <span id="cart-tab-cnt" style="display:none;background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:3px;"></span></button>
   </div>
 </div>
 <div id="toast"></div>
@@ -202,19 +203,25 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
     <h3 style="font-weight:700;font-size:14px;margin:0 0 10px;color:var(--warn);">⚠️ 연쇄 교체 필요 <span id="cnt-cascade" class="tag tag-a"></span></h3>
     <div id="list-cascade" style="display:grid;gap:8px;"></div>
   </div>
-  <div id="cart-box" style="display:none;margin-top:28px;border-top:2px solid var(--border);padding-top:20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <h3 style="font-weight:700;font-size:14px;margin:0;">🛒 대체수업계획서 장바구니 <span id="cart-cnt" class="tag tag-b"></span></h3>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-s" style="padding:6px 12px;font-size:12px;" onclick="clearCart()">전체 삭제</button>
-        <button class="btn btn-p" style="padding:6px 14px;font-size:12px;" onclick="copyCart()">📋 클립보드 복사</button>
-      </div>
-    </div>
-    <div id="cart-items" style="display:grid;gap:8px;"></div>
-    <div id="copy-prev" style="display:none;margin-top:10px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;font-family:monospace;white-space:pre;overflow-x:auto;"></div>
-  </div>
 </div>
 
+</div>
+
+<!-- TAB: 장바구니 -->
+<div id="p-cart" style="display:none;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <h3 style="font-weight:700;font-size:15px;margin:0;">🛒 대체수업계획서 장바구니 <span id="cart-cnt" class="tag tag-b"></span></h3>
+    <button class="btn btn-s" style="padding:6px 12px;font-size:12px;" onclick="clearCart()">전체 삭제</button>
+  </div>
+  <div id="cart-empty" style="text-align:center;padding:60px 20px;">
+    <p style="font-size:36px;margin:0 0 10px;">🛒</p>
+    <p style="font-weight:600;font-size:15px;margin:0 0 4px;">장바구니가 비어있습니다</p>
+    <p style="color:var(--muted);font-size:13px;margin:0;">결과 탭에서 대체수업을 선택하고 담기 버튼을 눌러주세요.</p>
+  </div>
+  <div id="cart-content" style="display:none;">
+    <p style="font-size:13px;color:var(--muted);background:#f1f5f9;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;">📌 아래의 영역을 드래그 복사하여 붙여넣기 하세요</p>
+    <div id="cart-items" style="display:grid;gap:8px;"></div>
+  </div>
 </div>
 
 <script>
@@ -659,10 +666,18 @@ function selSlot(type,idx,day,p){
 }
 
 function selDate(type,idx,date){
+  const sel=S.sel[`${type}${idx}`];
+  if(sel.date===date){
+    sel.date=null;
+    document.querySelectorAll(`[id^="dc-${type}${idx}-"]`).forEach(el=>el.className='chip chip-d chip-sm');
+    const dsel=document.getElementById(`dsel-${type}${idx}`);
+    const btn=dsel?.querySelector('.add-btn');if(btn)btn.remove();
+    return;
+  }
   document.querySelectorAll(`[id^="dc-${type}${idx}-"]`).forEach(el=>el.className='chip chip-d chip-sm');
   const el=document.getElementById(`dc-${type}${idx}-${date}`);
   if(el)el.className='chip chip-sel chip-sm';
-  const sel=S.sel[`${type}${idx}`];sel.date=date;
+  sel.date=date;
   if(type==='d'){
     const dsel=document.getElementById(`dsel-${type}${idx}`);
     if(!dsel.querySelector('.add-btn')){
@@ -717,9 +732,17 @@ function selRslvSlot(parentIdx,ri,day,p){
 }
 
 function selRslvDate(parentIdx,ri,date){
+  const sel=S.sel[`c${parentIdx}`];
+  if(!sel._rslv)sel._rslv={};
+  if(sel._rslv[ri]?.date===date){
+    sel._rslv[ri].date=null;
+    document.querySelectorAll(`[id^="rdc-${parentIdx}-${ri}-"]`).forEach(el=>el.className='chip chip-w chip-sm');
+    const dsel=document.getElementById(`rdsel-${parentIdx}-${ri}`);
+    const btn=dsel?.querySelector('.add-btn');if(btn)btn.remove();
+    return;
+  }
   document.querySelectorAll(`[id^="rdc-${parentIdx}-${ri}-"]`).forEach(el=>el.className='chip chip-w chip-sm');
   document.getElementById(`rdc-${parentIdx}-${ri}-${date}`).className='chip chip-ws chip-sm';
-  const sel=S.sel[`c${parentIdx}`];
   sel._rslv[ri].date=date;
   const dsel=document.getElementById(`rdsel-${parentIdx}-${ri}`);
   if(!dsel.querySelector('.add-btn')){
@@ -734,6 +757,7 @@ function selRslvDate(parentIdx,ri,date){
 function addDirectToCart(idx){
   const sel=S.sel[`d${idx}`];
   if(!sel?.date){toast('날짜를 선택하세요','warn');return;}
+  if(S.cart.some(i=>i.main.absDate===_absDate&&i.main.absP===_absP)){toast('이미 담긴 결강 수업입니다','warn');return;}
   const candList=findCandidates(_absDate,_absP).direct;
   const cand=candList[idx];if(!cand)return;
   const me=getTeacher(),absDay=getDay(_absDate);
@@ -752,6 +776,7 @@ function addCascadeToCart(parentIdx,ri){
   const sel=S.sel[`c${parentIdx}`];
   if(!sel?.date){toast('파트너 날짜를 선택하세요','warn');return;}
   if(!sel._rslv?.[ri]?.date){toast('연쇄 교체 날짜를 선택하세요','warn');return;}
+  if(S.cart.some(i=>i.main.absDate===_absDate&&i.main.absP===_absP)){toast('이미 담긴 결강 수업입니다','warn');return;}
   const candList=findCandidates(_absDate,_absP).cascade;
   const cand=candList[parentIdx];if(!cand)return;
   const resolvers=sel._resolvers||[];
@@ -774,24 +799,33 @@ function addCascadeToCart(parentIdx,ri){
 }
 
 function askMore(){
-  const existing=document.getElementById('more-banner');if(existing)existing.remove();
-  const el=document.createElement('div');el.id='more-banner';
-  el.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:12px 18px;border-radius:12px;display:flex;align-items:center;gap:10px;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.25);font-size:13px;';
-  el.innerHTML=`추가로 교체할 교시가 있나요?
-    <button onclick="go('search');document.getElementById('more-banner').remove();" class="btn btn-p" style="padding:5px 12px;font-size:12px;">탐색 계속</button>
-    <button onclick="this.parentElement.remove();" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;">아니요</button>`;
-  document.body.appendChild(el);
-  setTimeout(()=>{const b=document.getElementById('more-banner');if(b)b.remove();},8000);
+  const existing=document.getElementById('more-overlay');if(existing)existing.remove();
+  const overlay=document.createElement('div');overlay.id='more-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML=`<div style="background:#fff;border-radius:16px;padding:28px 32px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.25);min-width:260px;">
+    <p style="font-size:15px;font-weight:700;color:var(--text);margin:0 0 18px;">추가로 교체할 수업이 있나요?</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="document.getElementById('more-overlay').remove();go('search');" class="btn btn-p" style="padding:8px 18px;font-size:13px;">탐색 계속</button>
+      <button onclick="document.getElementById('more-overlay').remove();go('cart');" class="btn btn-s" style="padding:8px 18px;font-size:13px;">아니요</button>
+    </div>
+  </div>`;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+  setTimeout(()=>{const o=document.getElementById('more-overlay');if(o)o.remove();},10000);
 }
 
 function removeFromCart(id){S.cart=S.cart.filter(i=>i.id!==id);renderCart();}
 function clearCart(){S.cart=[];renderCart();}
 
 function renderCart(){
-  const box=document.getElementById('cart-box');
-  if(!S.cart.length){box.style.display='none';return;}
-  box.style.display='block';
-  document.getElementById('cart-cnt').textContent=`${S.cart.length}건`;
+  const cnt=S.cart.length;
+  const cntEl=document.getElementById('cart-cnt');
+  const tabCnt=document.getElementById('cart-tab-cnt');
+  if(cnt){cntEl.textContent=`${cnt}건`;tabCnt.textContent=cnt;tabCnt.style.display='';}
+  else{cntEl.textContent='';tabCnt.style.display='none';}
+  document.getElementById('cart-empty').style.display=cnt?'none':'block';
+  document.getElementById('cart-content').style.display=cnt?'block':'none';
+  if(!cnt)return;
   document.getElementById('cart-items').innerHTML=S.cart.map((item,ci)=>`
     <div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:#fff;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -832,24 +866,10 @@ function renderCart(){
     </div>`).join('');
 }
 
-function copyCart(){
-  const lines=[];
-  for(const item of S.cart){
-    const m=item.main;
-    lines.push([fmtDate(m.absDate),m.absP,m.absGB,m.absSub,fmtDate(m.swapDate),m.swapP,m.swapGB,m.swapSub,m.swapT].join('\t'));
-    for(const cr of item.cascades)
-      lines.push([fmtDate(cr.absDate),cr.absP,cr.absGB,cr.absSub,fmtDate(cr.swapDate),cr.swapP,cr.swapGB,cr.swapSub,cr.swapT].join('\t'));
-  }
-  const text=lines.join('\n');
-  navigator.clipboard.writeText(text).then(()=>toast('클립보드에 복사됨! ✓')).catch(()=>{
-    const prev=document.getElementById('copy-prev');prev.textContent=text;prev.style.display='block';
-    toast('아래 텍스트를 직접 복사하세요','warn');
-  });
-}
 
 // TABS
 function go(name){
-  ['settings','search','results'].forEach(n=>{
+  ['settings','search','results','cart'].forEach(n=>{
     document.getElementById('p-'+n).style.display=n===name?'block':'none';
     document.getElementById('t-'+n).classList.toggle('active',n===name);
   });
