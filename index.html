@@ -742,13 +742,13 @@ function selSlot(type,idx,day,p){
   const hasApiData=Object.keys(S.cache.tt).length>0;
   const chips=dates.slice(0,10).map(d=>{
     const v=sel.info?ttHasClass(d,p,sel.info.g,sel.info.b):null;
-    const badge=v===true?`<span style="font-size:10px;color:var(--accent);margin-left:3px;">✓</span>`
-      :v===false?`<span style="font-size:10px;color:var(--danger);margin-left:3px;">✗변경</span>`:'';
+    const badge=v===true?`<span style="font-size:11px;margin-left:3px;">✅</span>`
+      :v===false?`<span style="font-size:11px;margin-left:3px;">❌</span>`:'';
     return `<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}"
       onclick="selDate('${type}',${idx},'${d}')" style="${v===false?'opacity:.45;border-color:#fca5a5;':''}">
       ${fmtDate(d)}${badge}</button>`;
   }).join('');
-  const legend=hasApiData?`<p style="font-size:10px;color:var(--muted);margin:5px 0 0;">✓ API 시간표 확인됨 &nbsp;✗변경 = 해당일 수업 없음(시간표 변경 의심)</p>`:'';
+  const legend=hasApiData?`<p style="font-size:10px;color:var(--muted);margin:5px 0 0;">✅ 수업 교체 가능 확실 &nbsp;❌ 수업 교체 불가(시간표 변경 의심)</p>`:'';
   const dsel=document.getElementById(`dsel-${type}${idx}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 5px;">${day}요일 날짜 선택:</p>
     <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>${legend}`;
@@ -811,8 +811,8 @@ function selRslvSlot(parentIdx,ri,day,p){
   const dates=getDatesFor(day);
   const chips=dates.slice(0,10).map(d=>{
     const v=rslvSlotInfo?ttHasClass(d,p,rslvSlotInfo.g,rslvSlotInfo.b):null;
-    const badge=v===true?`<span style="font-size:10px;color:var(--accent);margin-left:3px;">✓</span>`
-      :v===false?`<span style="font-size:10px;color:var(--danger);margin-left:3px;">✗변경</span>`:'';
+    const badge=v===true?`<span style="font-size:11px;margin-left:3px;">✅</span>`
+      :v===false?`<span style="font-size:11px;margin-left:3px;">❌</span>`:'';
     return `<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}"
       onclick="selRslvDate(${parentIdx},${ri},'${d}')" style="${v===false?'opacity:.45;border-color:#fca5a5;':''}">${fmtDate(d)}${badge}</button>`;
   }).join('');
