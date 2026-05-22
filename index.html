@@ -442,18 +442,21 @@ async function neisGet(ep,params){
 async function fetchTT(from,to){
   if(!S.school)return;
   const ep=NEIS_TT[S.school.type]||'hisTimetable';
+  const fresh={};
   let pIndex=1;
   while(true){
     const rows=await neisGet(ep,{ATPT_OFCDC_SC_CODE:S.school.atpt,SD_SCHUL_CODE:S.school.code,TI_FROM_YMD:toYMD(from),TI_TO_YMD:toYMD(to),pSize:1000,pIndex});
     for(const r of rows){
       const raw=r.ALL_TI_YMD;if(!raw)continue;
       const d=`${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
-      if(!S.cache.tt[d])S.cache.tt[d]=[];
-      S.cache.tt[d].push({p:parseInt(r.PERIO||0),g:r.GRADE,b:r.CLASS_NM,sub:(r.ITRT_CNTNT||'').trim()});
+      if(!fresh[d])fresh[d]=[];
+      fresh[d].push({p:parseInt(r.PERIO||0),g:r.GRADE,b:r.CLASS_NM,sub:(r.ITRT_CNTNT||'').trim()});
     }
     if(rows.length<1000)break;
     pIndex++;
   }
+  // 기존 캐시에서 조회 범위 날짜만 덮어쓰기 (과거 날짜 보존)
+  Object.assign(S.cache.tt,fresh);
 }
 
 async function fetchHols(from,to){
