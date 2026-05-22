@@ -79,7 +79,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div>
         <h2 style="font-weight:700;font-size:15px;margin:0 0 3px;">📥 설정 가져오기</h2>
-        <p style="font-size:12px;color:var(--muted);margin:0;">관리자에게 받은 설정 파일(.sf2)을 불러옵니다</p>
+        <p style="font-size:12px;color:var(--muted);margin:0;">관리자에게 받은 설정 파일(.sf2)을 불러옵니다 — 컴시간 서버 연결 포함</p>
       </div>
       <button class="btn btn-p" onclick="document.getElementById('import-inp').click()" style="white-space:nowrap;">파일 선택</button>
     </div>
@@ -596,10 +596,10 @@ async function testComci(){
     else throw new Error();
   }catch{el.style.color='var(--danger)';el.textContent='✗ 연결 실패 — 서버가 실행 중인지 확인하세요';}
 }
-async function syncComci(){
+async function syncComci(silent=false){
   const base=comciBase();
   const lbl=document.getElementById('comci-sync-lbl');
-  if(!base){toast('프록시 서버 주소를 입력하세요','warn');return;}
+  if(!base){if(!silent)toast('프록시 서버 주소를 입력하세요','warn');return;}
   lbl.style.color='var(--muted)';lbl.textContent='동기화 중...';
   try{
     const r=await fetch(`${base}/teacher-schedule?code=23469`,{signal:AbortSignal.timeout(15000)});
@@ -611,9 +611,9 @@ async function syncComci(){
     const t=new Date(S.lastComciSync);
     lbl.style.color='var(--accent)';
     lbl.textContent=`✓ 동기화 완료 — ${t.getHours()}시 ${t.getMinutes()}분`;
-    toast('컴시간 시간표 동기화 완료 ✓');
+    if(!silent)toast('컴시간 시간표 동기화 완료 ✓');
     onPeriodChg();
-  }catch(e){lbl.style.color='var(--danger)';lbl.textContent=`✗ 동기화 실패: ${e.message||'서버 오류'}`;toast('컴시간 동기화 실패','err');}
+  }catch(e){lbl.style.color='var(--danger)';lbl.textContent=`✗ 동기화 실패: ${e.message||'서버 오류'}`;if(!silent)toast('컴시간 동기화 실패','err');}
 }
 function comciGetClass(teacherName, weekday, period){
   if(!S.cache.comci||!teacherName)return null;
@@ -1069,7 +1069,7 @@ async function doExport(){
   if(pw1!==pw2){err.textContent='비밀번호가 일치하지 않습니다.';err.style.display='block';return;}
   err.style.display='none';
   try{
-    const payload={neisKey:S.neisKey,school:S.school,teachers:S.teachers,periods:S.periods};
+    const payload={neisKey:S.neisKey,school:S.school,teachers:S.teachers,periods:S.periods,comciUrl:S.comciUrl};
     const encrypted=await encryptSettings(payload,pw1);
     const blob=new Blob([JSON.stringify(encrypted)],{type:'application/json'});
     const a=document.createElement('a');
@@ -1107,6 +1107,7 @@ async function doImport(){
     if(data.neisKey)S.neisKey=data.neisKey;
     if(data.teachers)S.teachers=data.teachers;
     if(data.periods)S.periods={...S.periods,...data.periods};
+    if(data.comciUrl){S.comciUrl=data.comciUrl;document.getElementById('comci-url').value=S.comciUrl;}
     S.myName='';
     save();
     // UI 반영
@@ -1118,6 +1119,7 @@ async function doImport(){
     document.getElementById('import-lbl').innerHTML=`<span class="tag tag-g">✓ 설정 적용됨 — 아래에서 내 이름을 선택하세요</span>`;
     toast('설정 가져오기 완료 ✓');
     autoInitSchool();
+    if(S.comciUrl)syncComci(true);
   }catch(e){err.textContent='비밀번호가 틀렸거나 손상된 파일입니다.';err.style.display='block';}
 }
 
@@ -1127,6 +1129,10 @@ function go(name){
     document.getElementById('p-'+n).style.display=n===name?'block':'none';
     document.getElementById('t-'+n).classList.toggle('active',n===name);
   });
+  if(name==='search'&&S.comciUrl){
+    const stale=Date.now()-S.lastComciSync>10*60*1000;
+    if(stale)syncComci(true);
+  }
 }
 
 // INIT
@@ -1162,6 +1168,7 @@ autoInitSchool().then(()=>{
     el.style.cursor='help';
   }
 });
+if(S.comciUrl)syncComci(true);
 </script>
 </body>
 </html>
