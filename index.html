@@ -722,10 +722,18 @@ function candCard(cand,idx,type){
 }
 
 function selSlot(type,idx,day,p){
+  const key=`${type}${idx}`;
+  if(S.sel[key]?.day===day&&S.sel[key]?.p===p){
+    S.sel[key]={};
+    document.getElementById(`chip-${type}${idx}-${day}${p}`).className='chip chip-d chip-sm';
+    const dsel=document.getElementById(`dsel-${type}${idx}`);
+    if(dsel){dsel.innerHTML='';dsel.style.display='none';}
+    return;
+  }
   document.querySelectorAll(`[id^="chip-${type}${idx}-"]`).forEach(el=>{el.className='chip chip-d chip-sm';});
   document.getElementById(`chip-${type}${idx}-${day}${p}`).className='chip chip-sel chip-sm';
-  if(!S.sel[`${type}${idx}`])S.sel[`${type}${idx}`]={};
-  const sel=S.sel[`${type}${idx}`];
+  if(!S.sel[key])S.sel[key]={};
+  const sel=S.sel[key];
   sel.day=day;sel.p=p;sel.date=null;
   const candList=type==='d'?findCandidates(_absDate,_absP).direct:findCandidates(_absDate,_absP).cascade;
   const slot=candList[idx]?.slots.find(s=>s.day===day&&s.p===p);
