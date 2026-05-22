@@ -242,6 +242,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
       <div id="my-cls-box" style="display:none;background:var(--accent-l);border:1px solid #99f6e4;border-radius:8px;padding:10px;">
         <p style="font-size:11px;font-weight:700;color:var(--accent);margin:0 0 3px;">내 수업</p>
         <p id="my-cls-txt" style="font-weight:700;font-size:14px;margin:0;"></p>
+        <p id="my-cls-warn" style="display:none;font-size:11px;color:var(--warn);margin:6px 0 0;">⚠️ NEIS 시간표 기준으로 수업 교체로 없는 수업입니다.</p>
       </div>
       <button class="btn btn-p" onclick="doSearch()" style="width:100%;padding:11px;">🔍 교체 가능 교사 탐색</button>
     </div>
@@ -605,6 +606,9 @@ function onPeriodChg(){
   if(!slot){box.style.display='none';return;}
   const info=parseCls(slot);
   document.getElementById('my-cls-txt').textContent=`${gbLbl(info)} ${info?.sub||''} (${slot})`;
+  const neisCheck=info?ttHasClass(dv,pv,info.g,info.b):null;
+  const warnEl=document.getElementById('my-cls-warn');
+  warnEl.style.display=neisCheck===false?'block':'none';
   box.style.display='block';
 }
 
