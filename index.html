@@ -478,10 +478,10 @@ async function fetchHols(from,to){
 }
 
 async function syncNeis(){
-  if(!S.neisKey||!S.school||!S.semEnd)return;
+  if(!S.neisKey||!S.school)return;
   setSyncLbl('<span class="sync-spin">⟳</span> 동기화 중...');
   try{
-    const from=ds(new Date()),to=S.semEnd;
+    const from=ds(new Date()),to=S.semEnd||'2026-12-31';
     await Promise.all([fetchTT(from,to),fetchHols(from,to)]);
     S.cache.ts=Date.now();S.lastSync=Date.now();save();
     setSyncLbl(fmtSyncTime());
@@ -1098,7 +1098,7 @@ document.getElementById('s-date').value=today;
 document.getElementById('s-date').min=today;
 onDateChg();
 go(S.teachers.length&&S.myName?'search':'settings');
-if(S.neisKey&&S.school&&S.semEnd){
+if(S.neisKey&&S.school){
   if(S.lastSync)setSyncLbl(fmtSyncTime());
   syncNeis();setInterval(syncNeis,3600000);
 }else{
