@@ -39,6 +39,8 @@ body{background:var(--bg);color:var(--text);min-height:100vh;}
 .rtbl .cascade-row{background:#fffbeb;}
 hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
 #toast{position:fixed;top:16px;right:16px;z-index:200;display:none;padding:12px 16px;border-radius:10px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:13px;font-weight:500;border-left:4px solid var(--accent);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sync-spin{display:inline-block;animation:spin .8s linear infinite;}
 </style>
 </head>
 <body>
@@ -304,7 +306,8 @@ let S={
   semEnd:'',
   cache:{tt:{},hols:new Set(),ts:0},
   cart:[],
-  sel:{}
+  sel:{},
+  lastSync:0
 };
 
 // PERSIST
@@ -312,7 +315,8 @@ function save(){
   try{localStorage.setItem('sf2',JSON.stringify({
     neisKey:S.neisKey,school:S.school,teachers:S.teachers,
     myName:S.myName,periods:S.periods,restricted:S.restricted,semEnd:S.semEnd,
-    cache:{tt:S.cache.tt,hols:[...S.cache.hols],ts:S.cache.ts}
+    cache:{tt:S.cache.tt,hols:[...S.cache.hols],ts:S.cache.ts},
+    lastSync:S.lastSync
   }));}catch(e){}
 }
 function load(){
@@ -326,6 +330,7 @@ function load(){
     if(d.restricted)S.restricted=d.restricted;
     if(d.semEnd)S.semEnd=d.semEnd;
     if(d.cache){S.cache.tt=d.cache.tt||{};S.cache.hols=new Set(d.cache.hols||[]);S.cache.ts=d.cache.ts||0;}
+    if(d.lastSync)S.lastSync=d.lastSync;
   }catch(e){}
 }
 
@@ -472,15 +477,23 @@ async function fetchHols(from,to){
 
 async function syncNeis(){
   if(!S.neisKey||!S.school||!S.semEnd)return;
-  setSyncLbl('동기화 중...');
+  setSyncLbl('<span class="sync-spin">⟳</span> 동기화 중...');
   try{
     const from=ds(new Date()),to=S.semEnd;
     await Promise.all([fetchTT(from,to),fetchHols(from,to)]);
-    S.cache.ts=Date.now();save();
-    setSyncLbl(`마지막 동기화: ${new Date().toLocaleTimeString('ko')}`);
+    S.cache.ts=Date.now();S.lastSync=Date.now();save();
+    setSyncLbl(fmtSyncTime());
   }catch(e){setSyncLbl(`동기화 실패: ${e.message}`);}
 }
-function setSyncLbl(t){document.getElementById('sync-lbl').textContent=t;}
+function fmtSyncTime(){
+  if(!S.lastSync)return '';
+  const d=new Date(S.lastSync);
+  const isToday=d.toDateString()===new Date().toDateString();
+  const time=d.toLocaleTimeString('ko',{hour:'2-digit',minute:'2-digit'});
+  const label=isToday?'오늘':d.toLocaleDateString('ko',{month:'numeric',day:'numeric'});
+  return `마지막 동기화: ${label} ${time}`;
+}
+function setSyncLbl(html){document.getElementById('sync-lbl').innerHTML=html;}
 
 // SCHOOL SEARCH
 async function searchSch(){
@@ -895,42 +908,44 @@ function renderCart(){
   document.getElementById('cart-content').style.display=cnt?'block':'none';
   if(!cnt)return;
   document.getElementById('cart-items').innerHTML=S.cart.map((item,ci)=>`
-    <div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:#fff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div style="border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <span class="tag tag-b">교체 ${ci+1}</span>
-        <button onclick="removeFromCart(${item.id})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px;">✕ 삭제</button>
+        <button onclick="removeFromCart(${item.id})" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:12px;font-weight:600;">✕ 삭제</button>
       </div>
-      <table class="rtbl">
-        <thead><tr>
-          <th colspan="4">담당수업 (결강)</th>
-          <th style="background:var(--accent);color:#fff;">⇒</th>
-          <th colspan="5">대체수업</th>
-        </tr><tr>
-          <th>날짜(요일)</th><th>교시</th><th>학년반</th><th>과목</th>
-          <th style="background:#ccfbf1;"></th>
-          <th>날짜(요일)</th><th>교시</th><th>학년반</th><th>과목</th><th>교사</th>
-        </tr></thead>
-        <tbody>
-          <tr>
-            <td>${fmtDate(item.main.absDate)}</td><td>${item.main.absP}</td>
-            <td>${item.main.absGB}</td><td>${esc(item.main.absSub)}</td>
-            <td style="background:#f0fdfa;">⇒</td>
-            <td>${fmtDate(item.main.swapDate)}</td><td>${item.main.swapP}</td>
-            <td>${item.main.swapGB}</td><td>${esc(item.main.swapSub)}</td>
-            <td><strong>${esc(item.main.swapT)}</strong></td>
-          </tr>
-          ${item.cascades.map(cr=>`
-            <tr><td colspan="10" style="padding:2px 0;border:none;"><hr class="divline"></td></tr>
-            <tr class="cascade-row">
-              <td>${fmtDate(cr.absDate)}</td><td>${cr.absP}</td>
-              <td>${cr.absGB}</td><td>${esc(cr.absSub)}</td>
-              <td style="background:#fef9ee;">⇒</td>
-              <td>${fmtDate(cr.swapDate)}</td><td>${cr.swapP}</td>
-              <td>${cr.swapGB}</td><td>${esc(cr.swapSub)}</td>
-              <td><strong>${esc(cr.swapT)}</strong></td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
+      <div style="display:flex;align-items:stretch;gap:8px;">
+        <div style="flex:1;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:6px;">결강</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${fmtDate(item.main.absDate)}</div>
+          <div style="font-size:12px;color:var(--muted);">${item.main.absP}교시 · ${item.main.absGB}</div>
+          <div style="font-size:13px;margin-top:4px;">${esc(item.main.absSub)}</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:22px;color:var(--accent);flex-shrink:0;padding:0 4px;">⇒</div>
+        <div style="flex:1;background:var(--accent-l);border:1px solid #99f6e4;border-radius:8px;padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.5px;margin-bottom:6px;">대체수업</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${fmtDate(item.main.swapDate)}</div>
+          <div style="font-size:12px;color:var(--muted);">${item.main.swapP}교시 · ${item.main.swapGB}</div>
+          <div style="font-size:13px;margin-top:4px;">${esc(item.main.swapSub)} · <strong>${esc(item.main.swapT)}</strong></div>
+        </div>
+      </div>
+      ${item.cascades.length?`
+      <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #cbd5e1;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;">연쇄 교체</div>
+        ${item.cascades.map(cr=>`
+        <div style="display:flex;align-items:stretch;gap:8px;margin-bottom:6px;">
+          <div style="flex:1;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 10px;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:1px;">${fmtDate(cr.absDate)}</div>
+            <div style="font-size:11px;color:var(--muted);">${cr.absP}교시 · ${cr.absGB}</div>
+            <div style="font-size:12px;margin-top:3px;">${esc(cr.absSub)}</div>
+          </div>
+          <div style="display:flex;align-items:center;font-size:18px;color:var(--warn);flex-shrink:0;padding:0 2px;">⇒</div>
+          <div style="flex:1;background:#fef9ee;border:1px solid #fde68a;border-radius:6px;padding:8px 10px;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:1px;">${fmtDate(cr.swapDate)}</div>
+            <div style="font-size:11px;color:var(--muted);">${cr.swapP}교시 · ${cr.swapGB}</div>
+            <div style="font-size:12px;margin-top:3px;">${esc(cr.swapSub)} · <strong>${esc(cr.swapT)}</strong></div>
+          </div>
+        </div>`).join('')}
+      </div>`:''}
     </div>`).join('');
 }
 
@@ -1075,7 +1090,15 @@ document.getElementById('s-date').value=today;
 document.getElementById('s-date').min=today;
 onDateChg();
 go(S.teachers.length&&S.myName?'search':'settings');
-if(S.neisKey&&S.school&&S.semEnd){syncNeis();setInterval(syncNeis,3600000);}
+if(S.neisKey&&S.school&&S.semEnd){
+  if(S.lastSync)setSyncLbl(fmtSyncTime());
+  syncNeis();setInterval(syncNeis,3600000);
+}else{
+  const el=document.getElementById('sync-lbl');
+  el.innerHTML='실시간 동기화 불가';
+  el.title='관리자 설정을 완료해주세요';
+  el.style.cursor='help';
+}
 </script>
 </body>
 </html>
