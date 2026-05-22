@@ -4,27 +4,27 @@ title 수업교체 찾기 — 컴시간 프록시 서버
 
 set PYTHON_EXE=
 
-rem 1단계: py 런처
-where /q py 2>nul
-if %errorlevel%==0 set PYTHON_EXE=py
+rem 1단계: 알려진 경로 직접 확인
+if exist "%LOCALAPPDATA%\Python\bin\python.exe" set PYTHON_EXE="%LOCALAPPDATA%\Python\bin\python.exe"
 
-rem 2단계: python 명령
-if not defined PYTHON_EXE (
-    where /q python 2>nul
-    if %errorlevel%==0 set PYTHON_EXE=python
-)
-
-rem 3단계: 사용자 설치 경로 탐색 (일반적인 설치 위치)
+rem 2단계: 표준 설치 경로 탐색
 if not defined PYTHON_EXE (
     for /d %%d in ("%LOCALAPPDATA%\Programs\Python\Python3*") do (
         if exist "%%d\python.exe" set PYTHON_EXE="%%d\python.exe"
     )
 )
 
-rem 4단계: C드라이브 루트 탐색
+rem 3단계: C드라이브 루트 탐색
 if not defined PYTHON_EXE (
     for /d %%d in ("C:\Python3*") do (
         if exist "%%d\python.exe" set PYTHON_EXE="%%d\python.exe"
+    )
+)
+
+rem 4단계: PATH 탐색 — WindowsApps(가짜) 제외
+if not defined PYTHON_EXE (
+    for /f "delims=" %%p in ('where python 2^>nul ^| findstr /v /i "WindowsApps"') do (
+        if not defined PYTHON_EXE set PYTHON_EXE="%%p"
     )
 )
 

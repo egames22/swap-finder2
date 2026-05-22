@@ -1,25 +1,20 @@
-Dim fso, dir, scriptPath, WshShell, pyExe, ret
+Dim fso, dir, scriptPath, WshShell, pyExe, localApp
 Set fso = CreateObject("Scripting.FileSystemObject")
 dir = fso.GetParentFolderName(WScript.ScriptFullName)
 scriptPath = dir & "\comcigan_proxy.py"
 Set WshShell = CreateObject("WScript.Shell")
 
 pyExe = ""
+localApp = WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
 
-' py 런처 확인
-ret = WshShell.Run("cmd /c where py >nul 2>&1", 0, True)
-If ret = 0 Then pyExe = "py"
+' 1단계: 알려진 경로 직접 확인
+Dim directPath
+directPath = localApp & "\Python\bin\python.exe"
+If fso.FileExists(directPath) Then pyExe = """" & directPath & """"
 
-' python 확인
+' 2단계: 표준 설치 경로 탐색
 If pyExe = "" Then
-    ret = WshShell.Run("cmd /c where python >nul 2>&1", 0, True)
-    If ret = 0 Then pyExe = "python"
-End If
-
-' 설치 경로 직접 탐색
-If pyExe = "" Then
-    Dim localApp, pyFolder
-    localApp = WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+    Dim pyFolder
     pyFolder = localApp & "\Programs\Python"
     If fso.FolderExists(pyFolder) Then
         Dim subf
@@ -29,6 +24,26 @@ If pyExe = "" Then
                 Exit For
             End If
         Next
+    End If
+End If
+
+' 3단계: PATH 탐색 — WindowsApps(가짜) 제외
+If pyExe = "" Then
+    Dim tmpFile, line
+    tmpFile = localApp & "\Temp\_pyfind.txt"
+    WshShell.Run "cmd /c where python 2>nul | findstr /v /i WindowsApps > """ & tmpFile & """", 0, True
+    If fso.FileExists(tmpFile) Then
+        Dim ts
+        Set ts = fso.OpenTextFile(tmpFile, 1)
+        Do While Not ts.AtEndOfStream
+            line = Trim(ts.ReadLine())
+            If line <> "" Then
+                pyExe = """" & line & """"
+                Exit Do
+            End If
+        Loop
+        ts.Close
+        fso.DeleteFile tmpFile
     End If
 End If
 
