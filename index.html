@@ -67,7 +67,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
 </div>
 <div id="toast"></div>
 
-<div style="max-width:960px;margin:0 auto;padding:20px 20px 60px;">
+<div id="main-wrap" style="max-width:960px;margin:0 auto;padding:20px 20px 60px;">
 
 <!-- TAB: 설정 -->
 <div id="p-settings">
@@ -1070,6 +1070,7 @@ function go(name){
     document.getElementById('p-'+n).style.display=n===name?'block':'none';
     document.getElementById('t-'+n).classList.toggle('active',n===name);
   });
+  document.getElementById('main-wrap').style.maxWidth=name==='cart'?'1060px':'960px';
 }
 
 // INIT
