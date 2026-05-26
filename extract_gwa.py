@@ -89,7 +89,6 @@ def main():
         cur += timedelta(days=1)
 
     output = {
-        "school": "논산여자상업고등학교",
         "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "teachers": teachers,
         "dates": dates_out,

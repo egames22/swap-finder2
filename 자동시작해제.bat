@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 > nul
-title 컴시간 서버 자동시작 해제
+title 수업교체 자동배포 자동시작 해제
 
 set STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 set DST=%STARTUP%\수업교체찾기_서버.vbs

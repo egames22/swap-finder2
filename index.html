@@ -52,7 +52,6 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
       <h1 style="font-size:17px;font-weight:700;margin:0;">📚 수업교체 찾기</h1>
       <p id="sync-lbl" style="font-size:11px;opacity:.75;margin:2px 0 0;">-</p>
     </div>
-    <span style="font-size:12px;opacity:.85;">🏫 논산여자상업고등학교</span>
   </div>
 </div>
 
@@ -304,7 +303,6 @@ function isRestr(day,p,date=null){
   if(date&&S.restricted.once.some(r=>r.date===date&&r.p===p))return true;
   return false;
 }
-function ttHasClass(date,p,g,b){return null;}
 function getDatesFor(day){
   const res=[],end=new Date('2026-12-31');
   let cur=new Date();cur.setHours(0,0,0,0);
@@ -617,19 +615,11 @@ function selSlot(type,idx,day,p){
   const slot=candList[idx]?.slots.find(s=>s.day===day&&s.p===p);
   sel.info=slot?.info;
   const dates=getDatesFor(day);
-  const hasApiData=Object.keys(S.cache.tt).length>0;
-  const chips=dates.slice(0,10).map(d=>{
-    const v=sel.info?ttHasClass(d,p,sel.info.g,sel.info.b):null;
-    const badge=v===true?`<span style="font-size:11px;margin-left:3px;">✅</span>`
-      :v===false?`<span style="font-size:11px;margin-left:3px;">❌</span>`:'';
-    return `<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}"
-      onclick="selDate('${type}',${idx},'${d}')" style="${v===false?'opacity:.45;border-color:#fca5a5;':''}">
-      ${fmtDate(d)}${badge}</button>`;
-  }).join('');
-  const legend=hasApiData?`<p style="font-size:10px;color:var(--muted);margin:5px 0 0;">✅ 수업 교체 가능 확실 &nbsp;❌ 수업 교체 불가(시간표 변경 의심)</p>`:'';
+  const chips=dates.slice(0,10).map(d=>`<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}"
+      onclick="selDate('${type}',${idx},'${d}')">${fmtDate(d)}</button>`).join('');
   const dsel=document.getElementById(`dsel-${type}${idx}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 5px;">${day}요일 날짜 선택:</p>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>${legend}`;
+    <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>`;
   dsel.style.display='block';
   if(type==='c'){const rv=document.getElementById(`rslv-${idx}`);if(rv)rv.style.display='none';}
 }
@@ -687,13 +677,8 @@ function selRslvSlot(parentIdx,ri,day,p){
   const resolvers=sel._resolvers||[];
   const rslvSlotInfo=resolvers[ri]?.slots.find(s=>s.day===day&&s.p===p)?.info;
   const dates=getDatesFor(day);
-  const chips=dates.slice(0,10).map(d=>{
-    const v=rslvSlotInfo?ttHasClass(d,p,rslvSlotInfo.g,rslvSlotInfo.b):null;
-    const badge=v===true?`<span style="font-size:11px;margin-left:3px;">✅</span>`
-      :v===false?`<span style="font-size:11px;margin-left:3px;">❌</span>`:'';
-    return `<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}"
-      onclick="selRslvDate(${parentIdx},${ri},'${d}')" style="${v===false?'opacity:.45;border-color:#fca5a5;':''}">${fmtDate(d)}${badge}</button>`;
-  }).join('');
+  const chips=dates.slice(0,10).map(d=>`<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}"
+      onclick="selRslvDate(${parentIdx},${ri},'${d}')">${fmtDate(d)}</button>`).join('');
   const dsel=document.getElementById(`rdsel-${parentIdx}-${ri}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 4px;">${day}요일:</p>
     <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>`;
