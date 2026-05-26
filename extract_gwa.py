@@ -1,14 +1,21 @@
 """
-일과서버 .Gwa 파일 → 일과시간표.json 변환 스크립트
-usage: python extract_gwa.py
+일과서버 .Gwa → 일과시간표.json 변환
+- dayhour_t.kim 기준 날짜별 교사 수업 유무 추출
+- 출력: 오늘 기준 -30일 ~ +60일 평일 데이터
 """
-import zipfile, struct, json, re
+import zipfile, struct, json
 from pathlib import Path
-from datetime import datetime
+from datetime import date, timedelta, datetime
 
-DAYS = ["일", "월", "화", "수", "목", "금", "토"]
-WEEKDAY_NAMES = ["월", "화", "수", "목", "금"]
-WEEKDAY_IDX   = [1,    2,    3,    4,    5]
+# 학기별 day 0 기준일 (해당 학기 3월 1일 또는 9월 1일)
+SEMESTER_START = {
+    "2024_1": date(2024, 3, 1),
+    "2025_1": date(2025, 3, 1),
+    "2026_1": date(2026, 3, 1),
+    "2024_2": date(2024, 9, 1),
+    "2025_2": date(2025, 9, 1),
+    "2026_2": date(2026, 9, 1),
+}
 
 def main():
     script_dir = Path(__file__).parent
@@ -23,6 +30,14 @@ def main():
     gwa_path = gwa_files[-1]
     print(f"파일: {gwa_path.name}")
 
+    stem = gwa_path.stem                        # "2026_1_nsgch"
+    sem_key = "_".join(stem.split("_")[:2])    # "2026_1"
+    base_date = SEMESTER_START.get(sem_key)
+    if not base_date:
+        print(f"오류: 알 수 없는 학기 코드 '{sem_key}'")
+        return
+    print(f"기준일(day 0): {base_date}")
+
     def _read_entry(zf, korean_name):
         target = korean_name.encode("euc-kr")
         for info in zf.infolist():
@@ -30,85 +45,61 @@ def main():
                 return zf.read(info)
         return None
 
-    def _parse_class_name(cls):
-        """학급명 → "N학년 (M)" 형식. 실패하면 None."""
-        m = re.match(r'(\d+)[\s\-학년]*(\d+)', cls.strip())
-        return f"{m.group(1)}학년 ({m.group(2)})" if m else None
-
     with zipfile.ZipFile(gwa_path) as zf:
-        # 파일 목록 출력 (학급.kim 등 확인용)
-        all_names = []
-        for info in zf.infolist():
-            try:
-                decoded = info.filename.encode("cp437").decode("euc-kr", errors="replace")
-            except Exception:
-                decoded = info.filename
-            all_names.append(decoded)
-        print(f"zip 파일 목록: {all_names}")
-
         # 교사명
-        teacher_raw = _read_entry(zf, "교사명.kim")
-        if not teacher_raw:
+        t_raw = _read_entry(zf, "교사명.kim")
+        if not t_raw:
             print("오류: 교사명.kim 없음")
             return
-        teacher_names = [t.strip() for t in teacher_raw.decode("euc-kr", errors="replace").split("^") if t.strip()]
+        teachers = [t.strip() for t in t_raw.decode("euc-kr", errors="replace").split("^") if t.strip()]
 
-        # 학급 목록 (있으면 학급 정보 포함)
-        class_raw = _read_entry(zf, "학급.kim")
-        classes = []
-        if class_raw:
-            class_text = class_raw.decode("euc-kr", errors="replace")
-            classes = [c.strip() for c in class_text.split("^") if c.strip()]
-            print(f"학급 {len(classes)}개: {classes[:8]}")
-        else:
-            print("학급.kim 없음 — 학급 정보 없이 수업 유무만 저장됩니다")
-
-        # 시간표 이진 데이터
-        sch_data = _read_entry(zf, "기본교사시간표.kim")
-        if not sch_data:
-            print("오류: 기본교사시간표.kim 없음")
+        # 날짜별 시간표 (dayhour_t.kim)
+        dh_raw = _read_entry(zf, "dayhour_t.kim")
+        if not dh_raw:
+            print("오류: dayhour_t.kim 없음")
             return
-        n_ints = len(sch_data) // 4
-        ints = list(struct.unpack(f"<{n_ints}I", sch_data[:n_ints * 4]))
 
-    print(f"교사 수: {len(teacher_names)}명")
+        N_T = len(teachers)
+        N_P = 9
+        n_ints = len(dh_raw) // 4
+        dh_vals = struct.unpack(f"<{n_ints}I", dh_raw[:n_ints * 4])
+        N_DAYS = n_ints // (N_T * N_P)
 
-    def val_to_slot(val):
-        if val == 0:
-            return ""
-        if not classes:
-            return "수업"
-        # 학급 인덱스 후보: 전체 값, 하위 16비트, 하위 8비트 순으로 시도 (인코딩 방식 불명확)
-        for candidate in (val, val & 0xFFFF, val & 0xFF):
-            if 1 <= candidate <= len(classes):
-                name = _parse_class_name(classes[candidate - 1])
-                if name:
-                    return name
-        return "수업"
+    print(f"교사 {N_T}명 · {N_DAYS}일 데이터")
 
-    teachers = []
-    for ti, name in enumerate(teacher_names):
-        sch = {}
-        for di, day_name in zip(WEEKDAY_IDX, WEEKDAY_NAMES):
-            slots = []
-            for pi in range(9):
-                val = ints[ti * 63 + di * 9 + pi]
-                slots.append(val_to_slot(val))
-            sch[day_name] = slots
-        teachers.append({"name": name, "dname": name, "schedule": sch})
+    today = date.today()
+    window_start = today - timedelta(days=30)
+    window_end   = today + timedelta(days=60)
+    # 학기 시작일보다 앞으로 가지 않음
+    window_start = max(window_start, base_date)
+
+    dates_out = {}
+    cur = window_start
+    while cur <= window_end:
+        if cur.weekday() < 5:          # 평일(월~금)만
+            day_idx = (cur - base_date).days
+            if 0 <= day_idx < N_DAYS:
+                # 각 교사별 9개 교시 수업 유무 (1=수업, 0=빈 시간)
+                schedule = []
+                base = day_idx * N_T * N_P
+                for ti in range(N_T):
+                    periods = [1 if dh_vals[base + ti * N_P + pi] != 0 else 0 for pi in range(N_P)]
+                    schedule.append(periods)
+                dates_out[cur.isoformat()] = schedule
+        cur += timedelta(days=1)
 
     output = {
         "school": "논산여자상업고등학교",
-        "source": gwa_path.name,
         "generated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "teachers": teachers
+        "teachers": teachers,
+        "dates": dates_out,
     }
 
     out_path = script_dir / "일과시간표.json"
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
+        json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
 
-    print(f"완료: {len(teachers)}명 → {out_path.name}")
+    print(f"완료: {len(teachers)}명 · {len(dates_out)}일 → {out_path.name}")
 
 if __name__ == "__main__":
     main()
