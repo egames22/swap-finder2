@@ -52,7 +52,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
       <h1 style="font-size:17px;font-weight:700;margin:0;">📚 수업교체 찾기</h1>
       <p id="sync-lbl" style="font-size:11px;opacity:.75;margin:2px 0 0;">-</p>
     </div>
-    <span id="school-lbl" style="font-size:12px;opacity:.85;"></span>
+    <span style="font-size:12px;opacity:.85;">🏫 논산여자상업고등학교</span>
   </div>
 </div>
 
@@ -74,26 +74,13 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
 <div id="p-settings">
 <div style="display:grid;gap:16px;">
 
-  <!-- 설정 가져오기 (선생님용) -->
-  <div class="card" style="border-color:#99f6e4;background:var(--accent-l);">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div>
-        <h2 style="font-weight:700;font-size:15px;margin:0 0 3px;">📥 설정 가져오기</h2>
-        <p style="font-size:12px;color:var(--muted);margin:0;">관리자에게 받은 설정 파일(.sf2)을 불러옵니다 — 컴시간 서버 연결 포함</p>
-      </div>
-      <button class="btn btn-p" onclick="document.getElementById('import-inp').click()" style="white-space:nowrap;">파일 선택</button>
-    </div>
-    <input id="import-inp" type="file" accept=".sf2" style="display:none;" onchange="onImportFile(this.files[0]);this.value='';">
-    <div id="import-lbl" style="margin-top:8px;font-size:13px;"></div>
-  </div>
-
   <!-- 내 프로필 + 교체 제외 교시 통합 -->
   <div class="card">
     <div style="margin-bottom:14px;">
       <h2 style="font-weight:700;font-size:15px;margin:0 0 10px;">내 프로필</h2>
       <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">내 이름 선택</label>
       <select id="my-name" class="inp" style="width:auto;" onchange="S.myName=this.value;save();">
-        <option value="">-- 설정 파일을 먼저 가져오세요 --</option>
+        <option value="">-- 이름을 선택하세요 --</option>
       </select>
     </div>
     <hr style="border:none;border-top:1px solid var(--border);margin:0 0 14px;">
@@ -136,13 +123,6 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
     <div id="admin-panel" style="display:none;margin-top:14px;">
       <div style="display:grid;gap:10px;">
         <div>
-          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">API 키</label>
-          <div style="display:flex;gap:8px;">
-            <input id="neis-key" type="password" class="inp" placeholder="NEIS Open API 키 입력" style="flex:1;">
-            <button class="btn btn-s" onclick="saveKey()">저장</button>
-          </div>
-        </div>
-        <div>
           <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">시간표 파일 (나이스 내보내기 CSV)</label>
           <div style="border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;"
             ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
@@ -155,30 +135,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
           <div id="csv-lbl" style="margin-top:8px;font-size:13px;color:var(--muted);"></div>
         </div>
         <div id="admin-status" style="font-size:12px;color:var(--muted);"></div>
-        <button class="btn btn-p" onclick="openExportModal()" style="width:100%;padding:10px;">
-          📤 설정 파일 내보내기 (선생님 배포용)
-        </button>
       </div>
-    </div>
-  </div>
-
-  <!-- 컴시간 실시간 연동 -->
-  <div class="card" style="border-color:#a78bfa;background:#faf5ff;">
-    <h2 style="font-weight:700;font-size:15px;margin:0 0 12px;color:#7c3aed;">📡 컴시간 실시간 연동</h2>
-    <div style="display:grid;gap:10px;">
-      <div>
-        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">프록시 서버 주소</label>
-        <div style="display:flex;gap:8px;">
-          <input id="comci-url" type="text" class="inp" placeholder="http://192.168.x.x:3001" style="flex:1;" oninput="S.comciUrl=this.value;save();">
-          <button class="btn btn-s" onclick="testComci()">연결 테스트</button>
-        </div>
-        <div id="comci-status" style="font-size:12px;margin-top:4px;min-height:18px;"></div>
-      </div>
-      <div style="font-size:12px;color:var(--accent);padding:6px 10px;background:#f3f0ff;border:1px solid #d8b4fe;border-radius:8px;">
-        🏫 논산여자상업고등학교 (컴시간 코드: 23469)
-      </div>
-      <button class="btn btn-p" onclick="syncComci()" style="width:100%;padding:10px;">🔄 컴시간 시간표 동기화</button>
-      <div id="comci-sync-lbl" style="font-size:12px;color:var(--muted);min-height:16px;"></div>
     </div>
   </div>
 
@@ -208,46 +165,6 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
   </div>
 </div>
 
-<!-- 내보내기 모달 -->
-<div id="export-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:28px;width:min(400px,90vw);box-shadow:0 8px 40px rgba(0,0,0,.25);">
-    <h3 style="font-weight:700;font-size:16px;margin:0 0 6px;">📤 설정 파일 내보내기</h3>
-    <p style="font-size:12px;color:var(--muted);margin:0 0 18px;">선생님들이 파일을 열 때 사용할 비밀번호를 설정하세요.</p>
-    <div style="display:grid;gap:10px;">
-      <div>
-        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">비밀번호</label>
-        <input id="exp-pw1" type="password" class="inp" placeholder="비밀번호 입력">
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">비밀번호 확인</label>
-        <input id="exp-pw2" type="password" class="inp" placeholder="비밀번호 재입력" onkeydown="if(event.key==='Enter')doExport();">
-      </div>
-      <p id="exp-err" style="font-size:12px;color:var(--danger);margin:0;display:none;"></p>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:18px;">
-      <button class="btn btn-p" onclick="doExport()" style="flex:1;">내보내기</button>
-      <button class="btn btn-s" onclick="closeExportModal()" style="flex:1;">취소</button>
-    </div>
-  </div>
-</div>
-
-<!-- 가져오기 모달 -->
-<div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:28px;width:min(400px,90vw);box-shadow:0 8px 40px rgba(0,0,0,.25);">
-    <h3 style="font-weight:700;font-size:16px;margin:0 0 6px;">📥 설정 가져오기</h3>
-    <p style="font-size:12px;color:var(--muted);margin:0 0 18px;">관리자가 설정한 비밀번호를 입력하세요.</p>
-    <div>
-      <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">비밀번호</label>
-      <input id="imp-pw" type="password" class="inp" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doImport();">
-      <p id="imp-err" style="font-size:12px;color:var(--danger);margin:4px 0 0;display:none;"></p>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:18px;">
-      <button class="btn btn-p" onclick="doImport()" style="flex:1;">가져오기</button>
-      <button class="btn btn-s" onclick="closeImportModal()" style="flex:1;">취소</button>
-    </div>
-  </div>
-</div>
-
 <!-- TAB: 탐색 -->
 <div id="p-search" style="display:none;">
   <div class="card" style="max-width:440px;margin:0 auto;">
@@ -266,7 +183,6 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
       <div id="my-cls-box" style="display:none;background:var(--accent-l);border:1px solid #99f6e4;border-radius:8px;padding:10px;">
         <p style="font-size:11px;font-weight:700;color:var(--accent);margin:0 0 3px;">내 수업</p>
         <p id="my-cls-txt" style="font-weight:700;font-size:14px;margin:0;"></p>
-        <p id="my-cls-warn" style="display:none;font-size:11px;color:var(--warn);margin:6px 0 0;">⚠️ NEIS 시간표 기준으로 수업 교체로 없는 수업입니다.</p>
       </div>
       <button class="btn btn-p" onclick="doSearch()" style="width:100%;padding:11px;">🔍 교체 가능 교사 탐색</button>
     </div>
@@ -321,45 +237,33 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
 <script>
 // CONSTANTS
 const DAYS=['월','화','수','목','금'];
-const NEIS_TT={고등학교:'hisTimetable',중학교:'misTimetable',초등학교:'elsTimetable'};
-const NEIS='https://open.neis.go.kr/hub';
 
 // STATE
 let S={
-  neisKey:'',school:null,
   teachers:[],myName:'',
   periods:{월:7,화:7,수:6,목:6,금:6},
   restricted:{weekly:[],once:[]},
-  cache:{tt:{},hols:new Set(),ts:0,comci:{}},
+  teacherSource:'',
   cart:[],
-  sel:{},
-  lastSync:0,
-  comciUrl:'',lastComciSync:0
+  sel:{}
 };
 
 // PERSIST
 function save(){
   try{localStorage.setItem('sf2',JSON.stringify({
-    neisKey:S.neisKey,school:S.school,teachers:S.teachers,
-    myName:S.myName,periods:S.periods,restricted:S.restricted,
-    cache:{tt:S.cache.tt,hols:[...S.cache.hols],ts:S.cache.ts,comci:S.cache.comci},
-    lastSync:S.lastSync,
-    comciUrl:S.comciUrl,lastComciSync:S.lastComciSync
+    teachers:S.teachers,myName:S.myName,
+    periods:S.periods,restricted:S.restricted,
+    teacherSource:S.teacherSource
   }));}catch(e){}
 }
 function load(){
   try{
     const d=JSON.parse(localStorage.getItem('sf2')||'{}');
-    if(d.neisKey)S.neisKey=d.neisKey;
-    if(d.school)S.school=d.school;
     if(d.teachers)S.teachers=d.teachers;
     if(d.myName)S.myName=d.myName;
     if(d.periods)S.periods={...S.periods,...d.periods};
     if(d.restricted)S.restricted=d.restricted;
-    if(d.cache){S.cache.tt=d.cache.tt||{};S.cache.hols=new Set(d.cache.hols||[]);S.cache.ts=d.cache.ts||0;S.cache.comci=d.cache.comci||{};}
-    if(d.lastSync)S.lastSync=d.lastSync;
-    if(d.comciUrl)S.comciUrl=d.comciUrl;
-    if(d.lastComciSync)S.lastComciSync=d.lastComciSync;
+    if(d.teacherSource)S.teacherSource=d.teacherSource;
   }catch(e){}
 }
 
@@ -391,18 +295,13 @@ function parseCls(s){
 }
 function gbLbl(info){return info?`${info.g}-${info.b}`:'?';}
 function sameGB(a,b){return a&&b&&a.g===b.g&&a.b===b.b;}
-function isHol(d){return S.cache.hols.has(d)||[0,6].includes(new Date(d).getDay());}
+function isHol(d){return[0,6].includes(new Date(d).getDay());}
 function isRestr(day,p,date=null){
   if(S.restricted.weekly.some(r=>r.day===day&&r.p===p))return true;
   if(date&&S.restricted.once.some(r=>r.date===date&&r.p===p))return true;
   return false;
 }
-// API 시간표 기준 수업 존재 여부: true=확인됨, false=없음(변경), null=API 데이터 없음
-function ttHasClass(date,p,g,b){
-  const entries=S.cache.tt[date];
-  if(!entries||!entries.length)return null;
-  return entries.some(e=>e.p===p&&String(e.g)===String(g)&&String(e.b)===String(b));
-}
+function ttHasClass(date,p,g,b){return null;}
 function getDatesFor(day){
   const res=[],end=new Date('2026-12-31');
   let cur=new Date();cur.setHours(0,0,0,0);
@@ -459,86 +358,6 @@ function parseCsvText(text){
   return teachers;
 }
 
-// NEIS API
-async function neisGet(ep,params){
-  if(!S.neisKey)throw new Error('API 키 없음');
-  const qs=new URLSearchParams({KEY:S.neisKey,Type:'json',...params});
-  const url=`${NEIS}/${ep}?${qs}`;
-  let resp;
-  try{resp=await fetch(url);}
-  catch{resp=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);}
-  const json=await resp.json();
-  const data=json[ep];
-  if(!data){const c=json.RESULT?.CODE||'';if(c==='INFO-200')return[];throw new Error(json.RESULT?.MESSAGE||'API 오류');}
-  return data[1]?.row||[];
-}
-
-async function fetchTT(from,to){
-  if(!S.school)return;
-  const ep=NEIS_TT[S.school.type]||'hisTimetable';
-  const fresh={};
-  let pIndex=1;
-  while(true){
-    const rows=await neisGet(ep,{ATPT_OFCDC_SC_CODE:S.school.atpt,SD_SCHUL_CODE:S.school.code,TI_FROM_YMD:toYMD(from),TI_TO_YMD:toYMD(to),pSize:1000,pIndex});
-    for(const r of rows){
-      const raw=r.ALL_TI_YMD;if(!raw)continue;
-      const d=`${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
-      if(!fresh[d])fresh[d]=[];
-      fresh[d].push({p:parseInt(r.PERIO||0),g:r.GRADE,b:r.CLASS_NM,sub:(r.ITRT_CNTNT||'').trim()});
-    }
-    if(rows.length<1000)break;
-    pIndex++;
-  }
-  // 기존 캐시에서 조회 범위 날짜만 덮어쓰기 (과거 날짜 보존)
-  Object.assign(S.cache.tt,fresh);
-}
-
-async function fetchHols(from,to){
-  if(!S.school)return;
-  const rows=await neisGet('SchoolSchedule',{ATPT_OFCDC_SC_CODE:S.school.atpt,SD_SCHUL_CODE:S.school.code,AA_FROM_YMD:toYMD(from),AA_TO_YMD:toYMD(to)});
-  for(const r of rows){
-    const raw=r.AA_YMD;if(!raw)continue;
-    const d=`${raw.slice(0,4)}-${raw.slice(4,6)}-${raw.slice(6,8)}`;
-    const nm=r.EVENT_NM||'';
-    if(r.SBTR_DD_SC_NM||nm.includes('방학')||nm.includes('휴업')||nm.includes('재량'))S.cache.hols.add(d);
-  }
-}
-
-async function syncNeis(){
-  if(!S.neisKey||!S.school)return;
-  setSyncLbl('<span class="sync-spin">⟳</span> 동기화 중...');
-  try{
-    const from=ds(new Date()),to='2026-12-31';
-    await Promise.all([fetchTT(from,to),fetchHols(from,to)]);
-    S.cache.ts=Date.now();S.lastSync=Date.now();save();
-    setSyncLbl(fmtSyncTime());
-  }catch(e){setSyncLbl(`동기화 실패: ${e.message}`);}
-}
-function fmtSyncTime(){
-  if(!S.lastSync)return '';
-  const d=new Date(S.lastSync);
-  const isToday=d.toDateString()===new Date().toDateString();
-  const time=d.toLocaleTimeString('ko',{hour:'2-digit',minute:'2-digit'});
-  const label=isToday?'오늘':d.toLocaleDateString('ko',{month:'numeric',day:'numeric'});
-  return `마지막 동기화: ${label} ${time}`;
-}
-function setSyncLbl(html){document.getElementById('sync-lbl').innerHTML=html;}
-
-// SCHOOL AUTO-INIT (API 키 저장 시 논산여상 학교코드 자동 설정)
-async function autoInitSchool(){
-  if(S.school&&S.school.code)return;
-  if(!S.neisKey)return;
-  try{
-    const rows=await neisGet('schoolInfo',{SCHUL_NM:'논산여자상업고등학교'});
-    const found=rows.find(r=>r.SCHUL_NM==='논산여자상업고등학교');
-    if(found){
-      S.school={atpt:found.ATPT_OFCDC_SC_CODE,code:found.SD_SCHUL_CODE,name:found.SCHUL_NM,type:found.SCHUL_KND_SC_NM};
-      document.getElementById('school-lbl').textContent=`🏫 ${S.school.name}`;
-      save();
-    }
-  }catch(e){}
-}
-
 // CSV LOAD
 function loadCsv(file){
   if(!file)return;
@@ -546,7 +365,11 @@ function loadCsv(file){
   rd.onload=e=>{
     const t=parseCsvText(e.target.result);
     if(!t){toast('CSV 파싱 실패','err');return;}
-    S.teachers=t;save();
+    const prevName=S.myName;
+    S.teachers=t;
+    S.teacherSource='csv';
+    if(prevName&&t.some(x=>x.dname===prevName))S.myName=prevName;
+    save();
     document.getElementById('csv-lbl').innerHTML=`<span class="tag tag-g">✓ ${t.length}명 로드됨</span>`;
     buildNameSel();
     toast(`${t.length}명 로드됨`);
@@ -554,12 +377,11 @@ function loadCsv(file){
   rd.readAsText(file,'UTF-8');
 }
 function dropCsv(e){e.preventDefault();loadCsv(e.dataTransfer.files[0]);}
-function saveKey(){S.neisKey=document.getElementById('neis-key').value.trim();save();toast('API 키 저장됨');autoInitSchool().then(()=>{if(S.neisKey&&S.school)syncNeis();})}
 
 // SETTINGS RENDER
 function buildNameSel(){
   const sel=document.getElementById('my-name');
-  sel.innerHTML='<option value="">-- 선택 --</option>';
+  sel.innerHTML='<option value="">-- 이름을 선택하세요 --</option>';
   for(const t of S.teachers){
     const o=document.createElement('option');
     o.value=t.dname;o.textContent=t.dname;
@@ -599,48 +421,6 @@ function delR(type,idx){S.restricted[type].splice(idx,1);save();buildRestricted(
 function getTeacher(){return S.teachers.find(t=>t.dname===S.myName);}
 function getSlot(teacher,day,period){return teacher?.sch?.[day]?.[period-1]||'';}
 
-// COMCIGAN
-function comciBase(){return (S.comciUrl||'').replace(/\/+$/,'');}
-async function testComci(){
-  const base=comciBase();
-  const el=document.getElementById('comci-status');
-  if(!base){el.style.color='var(--danger)';el.textContent='서버 주소를 입력하세요';return;}
-  el.style.color='var(--muted)';el.textContent='연결 확인 중...';
-  try{
-    const r=await fetch(`${base}/ping`,{signal:AbortSignal.timeout(5000)});
-    const d=await r.json();
-    if(d.ok){el.style.color='var(--accent)';el.textContent='✓ 연결 성공';}
-    else throw new Error();
-  }catch{el.style.color='var(--danger)';el.textContent='✗ 연결 실패 — 서버가 실행 중인지 확인하세요';}
-}
-async function syncComci(silent=false){
-  const base=comciBase();
-  const lbl=document.getElementById('comci-sync-lbl');
-  if(!base){if(!silent)toast('프록시 서버 주소를 입력하세요','warn');return;}
-  lbl.style.color='var(--muted)';lbl.textContent='동기화 중...';
-  try{
-    const r=await fetch(`${base}/teacher-schedule?code=23469`,{signal:AbortSignal.timeout(15000)});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    S.cache.comci=d;
-    S.lastComciSync=Date.now();
-    save();
-    const t=new Date(S.lastComciSync);
-    lbl.style.color='var(--accent)';
-    lbl.textContent=`✓ 동기화 완료 — ${t.getHours()}시 ${t.getMinutes()}분`;
-    if(!silent)toast('컴시간 시간표 동기화 완료 ✓');
-    onPeriodChg();
-  }catch(e){lbl.style.color='var(--danger)';lbl.textContent=`✗ 동기화 실패: ${e.message||'서버 오류'}`;if(!silent)toast('컴시간 동기화 실패','err');}
-}
-function comciGetClass(teacherName, weekday, period){
-  if(!S.cache.comci||!teacherName)return null;
-  const tw=S.cache.comci[teacherName];
-  if(!tw)return null;
-  const tp=tw[String(weekday)];
-  if(!tp)return null;
-  return tp[String(period)]||null;
-}
-
 function onDateChg(){
   const dv=document.getElementById('s-date').value,day=getDay(dv);
   const sel=document.getElementById('s-period');
@@ -655,31 +435,23 @@ function onPeriodChg(){
   const box=document.getElementById('my-cls-box');
   if(!dv||!pv||!S.myName){box.style.display='none';return;}
   const day=getDay(dv);
-  const weekday=DAYS.indexOf(day);
-  const comciCls=comciGetClass(S.myName,weekday,pv);
-  if(comciCls){
-    document.getElementById('my-cls-txt').textContent=`${comciCls.grade}학년 ${comciCls.cls}반 ${comciCls.subject} (컴시간 기준)`;
-    document.getElementById('my-cls-warn').style.display='none';
-    box.style.display='block';
-    return;
-  }
   const me=getTeacher();
   const slot=me?getSlot(me,day,pv):'';
   if(!slot){box.style.display='none';return;}
   const info=parseCls(slot);
-  document.getElementById('my-cls-txt').textContent=`${gbLbl(info)} ${info?.sub||''} (${slot})`;
-  const neisCheck=info?ttHasClass(dv,pv,info.g,info.b):null;
-  const warnEl=document.getElementById('my-cls-warn');
-  warnEl.style.display=neisCheck===false?'block':'none';
+  if(info){
+    document.getElementById('my-cls-txt').textContent=`${gbLbl(info)} ${info.sub||''}`;
+  }else{
+    document.getElementById('my-cls-txt').textContent='수업 정보 없음';
+  }
   box.style.display='block';
 }
 
-async function doSearch(){
+function doSearch(){
   const dv=document.getElementById('s-date').value,pv=parseInt(document.getElementById('s-period').value);
   if(!dv||!pv){toast('날짜와 교시를 선택하세요','warn');return;}
   if(!S.myName){toast('설정에서 내 이름을 선택하세요','warn');return;}
-  if(!S.teachers.length){toast('CSV를 먼저 업로드하세요','warn');return;}
-  if(S.neisKey&&S.school)try{await syncNeis();}catch{}
+  if(!S.teachers.length){toast('관리자 탭에서 CSV를 업로드하세요','warn');return;}
   findAndRender(dv,pv);
   go('results');
 }
@@ -1024,6 +796,22 @@ function renderCart(){
 }
 
 
+// TIMETABLE AUTO-FETCH
+async function fetchTimetable(){
+  if(S.teacherSource==='csv')return;
+  try{
+    const r=await fetch('./일과시간표.json?v='+Date.now());
+    if(!r.ok)return;
+    const data=await r.json();
+    if(!data.teachers||!Array.isArray(data.teachers))return;
+    S.teachers=data.teachers.map(t=>({name:t.name,dname:t.dname||t.name,sch:t.schedule||{}}));
+    S.teacherSource='json';
+    save();buildNameSel();
+    const lbl=document.getElementById('sync-lbl');
+    lbl.textContent=`업데이트: ${data.generated||''}`;
+  }catch(e){}
+}
+
 // ADMIN TOGGLE
 function toggleAdmin(){
   const panel=document.getElementById('admin-panel');
@@ -1035,109 +823,7 @@ function toggleAdmin(){
 }
 function updateAdminStatus(){
   const el=document.getElementById('admin-status');if(!el)return;
-  const parts=[];
-  if(S.neisKey)parts.push('✓ API 키');else parts.push('✗ API 키 없음');
-  if(S.school)parts.push(`✓ ${S.school.name}`);else parts.push('✗ 학교 미선택');
-  if(S.teachers.length)parts.push(`✓ 시간표 ${S.teachers.length}명`);else parts.push('✗ CSV 없음');
-  el.textContent=parts.join('  ·  ');
-}
-
-// CRYPTO (PBKDF2 + AES-GCM)
-function b64(buf){return btoa(String.fromCharCode(...new Uint8Array(buf)));}
-function ub64(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0));}
-
-async function deriveKey(password,salt,usage){
-  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,[usage]);
-}
-
-async function encryptSettings(data,password){
-  const salt=crypto.getRandomValues(new Uint8Array(16));
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const key=await deriveKey(password,salt,'encrypt');
-  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(data)));
-  return {v:1,salt:b64(salt),iv:b64(iv),enc:b64(enc)};
-}
-
-async function decryptSettings(obj,password){
-  const key=await deriveKey(password,ub64(obj.salt),'decrypt');
-  const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv:ub64(obj.iv)},key,ub64(obj.enc));
-  return JSON.parse(new TextDecoder().decode(dec));
-}
-
-// EXPORT
-function openExportModal(){
-  if(!S.neisKey||!S.school||!S.teachers.length){
-    toast('API 키, 학교, CSV를 모두 설정한 후 내보내기 하세요','warn');return;
-  }
-  document.getElementById('exp-pw1').value='';
-  document.getElementById('exp-pw2').value='';
-  document.getElementById('exp-err').style.display='none';
-  document.getElementById('export-modal').style.display='flex';
-  setTimeout(()=>document.getElementById('exp-pw1').focus(),50);
-}
-function closeExportModal(){document.getElementById('export-modal').style.display='none';}
-
-async function doExport(){
-  const pw1=document.getElementById('exp-pw1').value;
-  const pw2=document.getElementById('exp-pw2').value;
-  const err=document.getElementById('exp-err');
-  if(!pw1){err.textContent='비밀번호를 입력하세요.';err.style.display='block';return;}
-  if(pw1!==pw2){err.textContent='비밀번호가 일치하지 않습니다.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const payload={neisKey:S.neisKey,school:S.school,teachers:S.teachers,periods:S.periods,comciUrl:S.comciUrl};
-    const encrypted=await encryptSettings(payload,pw1);
-    const blob=new Blob([JSON.stringify(encrypted)],{type:'application/json'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`${S.school?.name||'학교'}_수업교체설정.sf2`;
-    a.click();URL.revokeObjectURL(a.href);
-    closeExportModal();toast('설정 파일 내보내기 완료 ✓');
-  }catch(e){err.textContent='내보내기 실패: '+e.message;err.style.display='block';}
-}
-
-// IMPORT
-let _importFileData=null;
-function onImportFile(file){
-  if(!file)return;
-  const rd=new FileReader();
-  rd.onload=e=>{
-    try{
-      _importFileData=JSON.parse(e.target.result);
-      document.getElementById('imp-pw').value='';
-      document.getElementById('imp-err').style.display='none';
-      document.getElementById('import-modal').style.display='flex';
-      setTimeout(()=>document.getElementById('imp-pw').focus(),50);
-    }catch{toast('파일을 읽을 수 없습니다','err');}
-  };
-  rd.readAsText(file);
-}
-function closeImportModal(){document.getElementById('import-modal').style.display='none';_importFileData=null;}
-
-async function doImport(){
-  const pw=document.getElementById('imp-pw').value;
-  const err=document.getElementById('imp-err');
-  if(!pw){err.textContent='비밀번호를 입력하세요.';err.style.display='block';return;}
-  try{
-    const data=await decryptSettings(_importFileData,pw);
-    if(data.neisKey)S.neisKey=data.neisKey;
-    if(data.teachers)S.teachers=data.teachers;
-    if(data.periods)S.periods={...S.periods,...data.periods};
-    if(data.comciUrl){S.comciUrl=data.comciUrl;document.getElementById('comci-url').value=S.comciUrl;}
-    S.myName='';
-    save();
-    // UI 반영
-    document.getElementById('neis-key').value=S.neisKey;
-    if(S.school)document.getElementById('school-lbl').textContent=`🏫 ${S.school.name}`;
-    if(S.teachers.length){document.getElementById('csv-lbl').innerHTML=`<span class="tag tag-g">✓ ${S.teachers.length}명 로드됨</span>`;buildNameSel();}
-    buildPeriodsGrid();
-    closeImportModal();
-    document.getElementById('import-lbl').innerHTML=`<span class="tag tag-g">✓ 설정 적용됨 — 아래에서 내 이름을 선택하세요</span>`;
-    toast('설정 가져오기 완료 ✓');
-    autoInitSchool();
-    if(S.comciUrl)syncComci(true);
-  }catch(e){err.textContent='비밀번호가 틀렸거나 손상된 파일입니다.';err.style.display='block';}
+  el.textContent=S.teachers.length?`✓ 시간표 ${S.teachers.length}명 로드됨`:'✗ CSV 없음';
 }
 
 // ADMIN LOCK
@@ -1165,27 +851,13 @@ function go(name){
     document.getElementById('p-'+n).style.display=n===name?'block':'none';
     document.getElementById('t-'+n).classList.toggle('active',n===name);
   });
-  if(name==='search'&&S.comciUrl){
-    const stale=Date.now()-S.lastComciSync>10*60*1000;
-    if(stale)syncComci(true);
-  }
 }
 
 // INIT
 load();
-document.getElementById('neis-key').value=S.neisKey;
-if(S.comciUrl)document.getElementById('comci-url').value=S.comciUrl;
-if(S.lastComciSync&&S.cache.comci&&Object.keys(S.cache.comci).length){
-  const t=new Date(S.lastComciSync);
-  const lbl=document.getElementById('comci-sync-lbl');
-  lbl.style.color='var(--accent)';
-  lbl.textContent=`✓ 마지막 동기화: ${t.getHours()}시 ${t.getMinutes()}분`;
-}
-if(S.school)document.getElementById('school-lbl').textContent=`🏫 ${S.school.name}`;
 if(S.teachers.length){
   document.getElementById('csv-lbl').innerHTML=`<span class="tag tag-g">✓ ${S.teachers.length}명 로드됨</span>`;
   buildNameSel();
-  document.getElementById('import-lbl').innerHTML=`<span class="tag tag-g">✓ 설정 적용됨 — 아래에서 내 이름을 선택하세요</span>`;
 }
 buildPeriodsGrid();buildRestricted();
 const today=ds(new Date());
@@ -1193,18 +865,8 @@ document.getElementById('s-date').value=today;
 document.getElementById('s-date').min=today;
 onDateChg();
 go(S.teachers.length&&S.myName?'search':'settings');
-autoInitSchool().then(()=>{
-  if(S.neisKey&&S.school){
-    if(S.lastSync)setSyncLbl(fmtSyncTime());
-    syncNeis();setInterval(syncNeis,3600000);
-  }else{
-    const el=document.getElementById('sync-lbl');
-    el.innerHTML=S.neisKey?'학교 코드 설정 중...':'NEIS 동기화 대기 중';
-    el.title='관리자 탭에서 API 키를 저장하세요';
-    el.style.cursor='help';
-  }
-});
-if(S.comciUrl)syncComci(true);
+fetchTimetable();
+setInterval(fetchTimetable,30*60*1000);
 </script>
 </body>
 </html>
