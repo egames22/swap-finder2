@@ -442,7 +442,7 @@ function onPeriodChg(){
   if(info){
     document.getElementById('my-cls-txt').textContent=`${gbLbl(info)} ${info.sub||''}`;
   }else{
-    document.getElementById('my-cls-txt').textContent='수업 정보 없음';
+    document.getElementById('my-cls-txt').textContent='수업 있음';
   }
   box.style.display='block';
 }
@@ -451,7 +451,10 @@ function doSearch(){
   const dv=document.getElementById('s-date').value,pv=parseInt(document.getElementById('s-period').value);
   if(!dv||!pv){toast('날짜와 교시를 선택하세요','warn');return;}
   if(!S.myName){toast('설정에서 내 이름을 선택하세요','warn');return;}
-  if(!S.teachers.length){toast('관리자 탭에서 CSV를 업로드하세요','warn');return;}
+  if(!S.teachers.length){toast('시간표 데이터가 없습니다 (자동갱신 대기 중)','warn');return;}
+  const meT=getTeacher();
+  if(!meT){toast('내 이름이 시간표에 없습니다','warn');return;}
+  if(!getSlot(meT,getDay(dv),pv)){toast('해당 교시에 수업이 없습니다','warn');return;}
   findAndRender(dv,pv);
   go('results');
 }
@@ -462,7 +465,14 @@ function findCandidates(absDate,absP){
   if(!absDay||!me)return{direct:[],cascade:[]};
   const mySlot=getSlot(me,absDay,absP);
   const myInfo=parseCls(mySlot);
-  if(!myInfo)return{direct:[],cascade:[]};
+  if(!myInfo){
+    if(mySlot!=='수업')return{direct:[],cascade:[]};
+    // 학급 상세 정보 없는 경우: 해당 교시 빈 교사 목록만 반환
+    const direct=S.teachers
+      .filter(t=>t.dname!==S.myName&&!getSlot(t,absDay,absP)&&!isRestr(absDay,absP,absDate))
+      .map(t=>({t,slots:[],binary:true}));
+    return{direct,cascade:[]};
+  }
   const direct=[],cascade=[];
   for(const t of S.teachers){
     if(t.dname===S.myName)continue;
@@ -528,7 +538,7 @@ function findAndRender(absDate,absP){
   document.getElementById('res-empty').style.display='none';
   const hdr=document.getElementById('res-hdr');
   hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;background:var(--accent);color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:16px;';
-  document.getElementById('res-hdr-txt').textContent=`${fmtDate(absDate)} ${absP}교시 · ${gbLbl(myInfo)} ${myInfo?.sub||''}`;
+  document.getElementById('res-hdr-txt').textContent=myInfo?`${fmtDate(absDate)} ${absP}교시 · ${gbLbl(myInfo)} ${myInfo?.sub||''}`:`${fmtDate(absDate)} ${absP}교시`;
   const dd=document.getElementById('res-direct'),dl=document.getElementById('list-direct');
   document.getElementById('cnt-direct').textContent=`${direct.length}건`;
   dl.innerHTML=direct.map((c,i)=>candCard(c,i,'d')).join('');
@@ -541,7 +551,16 @@ function findAndRender(absDate,absP){
 }
 
 function candCard(cand,idx,type){
-  const{t,slots,conflictInfo}=cand;
+  const{t,slots,conflictInfo,binary}=cand;
+  if(binary){
+    return `<div class="ccard" id="cc-${type}${idx}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span style="font-weight:700;font-size:15px;">${esc(t.dname)}</span>
+        <span class="tag tag-g">✓ 여유 있음</span>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin:0;">해당 교시 비어 있음 · 반별 교체 매칭은 CSV 업로드 후 가능</p>
+    </div>`;
+  }
   const isC=type==='c';
   const chips=slots.map(s=>
     `<button class="chip chip-d chip-sm" id="chip-${type}${idx}-${s.day}${s.p}"
