@@ -817,14 +817,36 @@ function renderCart(){
 
 // TIMETABLE AUTO-FETCH
 async function fetchTimetable(){
-  if(S.teacherSource==='csv')return;
   try{
     const r=await fetch('./일과시간표.json?v='+Date.now());
     if(!r.ok)return;
     const data=await r.json();
     if(!data.teachers||!Array.isArray(data.teachers))return;
-    S.teachers=data.teachers.map(t=>({name:t.name,dname:t.dname||t.name,sch:t.schedule||{}}));
-    S.teacherSource='json';
+
+    if(S.teacherSource==='csv'){
+      // CSV 학급정보 유지 + JSON 수업유무로 업데이트
+      const jMap={};
+      data.teachers.forEach(t=>{jMap[t.name||t.dname]=t;});
+      S.teachers=S.teachers.map(csvT=>{
+        const jT=jMap[csvT.name]||jMap[csvT.dname];
+        if(!jT)return csvT;
+        const sch={};
+        for(const day of DAYS){
+          sch[day]=(csvT.sch[day]||[]).map((csvSlot,pi)=>{
+            const jSlot=(jT.schedule||{})[day]?.[pi]??null;
+            if(jSlot===null)return csvSlot;   // JSON에 없으면 CSV 유지
+            if(jSlot==='')return '';           // JSON 비어있으면 수업 없음
+            if(jSlot!=='수업')return jSlot;   // JSON에 학급정보 있으면 사용
+            return csvSlot;                    // JSON이 '수업'이면 CSV 학급정보 유지
+          });
+        }
+        return{...csvT,sch};
+      });
+    }else{
+      S.teachers=data.teachers.map(t=>({name:t.name,dname:t.dname||t.name,sch:t.schedule||{}}));
+      S.teacherSource='json';
+    }
+
     save();buildNameSel();
     const lbl=document.getElementById('sync-lbl');
     lbl.textContent=`업데이트: ${data.generated||''}`;
