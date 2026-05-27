@@ -6,14 +6,12 @@ echo =====================================================
 echo   수업교체 자동배포 자동시작 등록
 echo =====================================================
 echo.
-echo 컴퓨터에 로그인할 때마다 서버가 자동으로 시작됩니다.
-echo (창 없이 백그라운드에서 조용히 실행)
-echo.
 
 set STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 set DST=%STARTUP%\수업교체찾기_서버.vbs
 set BAT=%~dp0자동배포.bat
 
+:: 1) 로그인 시 1회 실행 (VBS → 시작프로그램)
 (
   echo Dim WshShell
   echo Set WshShell = CreateObject^("WScript.Shell"^)
@@ -21,11 +19,23 @@ set BAT=%~dp0자동배포.bat
 ) > "%DST%"
 
 if exist "%DST%" (
-    echo  완료! 다음 로그인부터 서버가 자동으로 시작됩니다.
-    echo.
-    echo  지금 바로 배포하려면 자동배포.bat 을 실행하세요.
+    echo  [1] 로그인 자동실행 등록 완료
 ) else (
-    echo  복사에 실패했습니다. 관리자에게 문의하세요.
+    echo  [1] 로그인 자동실행 등록 실패 — 관리자 권한으로 다시 실행하세요.
+    pause
+    exit /b 1
 )
+
+:: 2) 매일 오전 7시 자동 실행 (작업 스케줄러)
+schtasks /create /tn "수업교체찾기_일과추출" /tr "\"%BAT%\"" /sc daily /st 07:00 /f > nul 2>&1
+
+if %errorlevel% equ 0 (
+    echo  [2] 매일 오전 7시 자동실행 등록 완료
+) else (
+    echo  [2] 매일 자동실행 등록 실패 — 관리자 권한으로 다시 실행하세요.
+)
+
+echo.
+echo  설정 완료! 지금 바로 배포하려면 자동배포.bat 을 실행하세요.
 echo.
 pause

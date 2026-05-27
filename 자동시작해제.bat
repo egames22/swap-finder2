@@ -7,9 +7,17 @@ set DST=%STARTUP%\수업교체찾기_서버.vbs
 
 if exist "%DST%" (
     del "%DST%" > nul 2>&1
-    echo 자동 시작이 해제되었습니다.
+    echo  [1] 로그인 자동실행 해제 완료
 ) else (
-    echo 등록된 자동 시작 항목이 없습니다.
+    echo  [1] 로그인 자동실행 항목 없음
 )
+
+schtasks /delete /tn "수업교체찾기_일과추출" /f > nul 2>&1
+if %errorlevel% equ 0 (
+    echo  [2] 매일 자동실행 해제 완료
+) else (
+    echo  [2] 매일 자동실행 항목 없음
+)
+
 echo.
 pause
