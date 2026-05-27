@@ -26,13 +26,21 @@ if exist "%DST%" (
     exit /b 1
 )
 
-:: 2) 매일 오전 7시 자동 실행 (작업 스케줄러)
-schtasks /create /tn "수업교체찾기_일과추출" /tr "\"%BAT%\"" /sc daily /st 07:00 /f > nul 2>&1
+:: 2) 매일 4회 자동 실행 (작업 스케줄러)
+set OK=1
+schtasks /create /tn "수업교체찾기_08시" /tr "\"%BAT%\"" /sc daily /st 08:00 /f > nul 2>&1
+if %errorlevel% neq 0 set OK=0
+schtasks /create /tn "수업교체찾기_12시" /tr "\"%BAT%\"" /sc daily /st 12:00 /f > nul 2>&1
+if %errorlevel% neq 0 set OK=0
+schtasks /create /tn "수업교체찾기_14시" /tr "\"%BAT%\"" /sc daily /st 14:00 /f > nul 2>&1
+if %errorlevel% neq 0 set OK=0
+schtasks /create /tn "수업교체찾기_17시" /tr "\"%BAT%\"" /sc daily /st 17:00 /f > nul 2>&1
+if %errorlevel% neq 0 set OK=0
 
-if %errorlevel% equ 0 (
-    echo  [2] 매일 오전 7시 자동실행 등록 완료
+if %OK% equ 1 (
+    echo  [2] 매일 08:00 / 12:00 / 14:00 / 17:00 자동실행 등록 완료
 ) else (
-    echo  [2] 매일 자동실행 등록 실패 — 관리자 권한으로 다시 실행하세요.
+    echo  [2] 일부 등록 실패 — 관리자 권한으로 다시 실행하세요.
 )
 
 echo.
