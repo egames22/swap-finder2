@@ -12,8 +12,13 @@ echo.
 
 set STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 set DST=%STARTUP%\수업교체찾기_서버.vbs
+set BAT=%~dp0자동배포.bat
 
-copy "%~dp0서버백그라운드.vbs" "%DST%" > nul 2>&1
+(
+  echo Dim WshShell
+  echo Set WshShell = CreateObject^("WScript.Shell"^)
+  echo WshShell.Run """"%BAT%"""", 0, False
+) > "%DST%"
 
 if exist "%DST%" (
     echo  완료! 다음 로그인부터 서버가 자동으로 시작됩니다.
