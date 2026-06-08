@@ -7,7 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <style>
+/* flatpickr 주말 제거 — 5열(월~금) 달력 */
+.fp-wd .flatpickr-weekdaycontainer>.flatpickr-weekday:nth-last-child(1),
+.fp-wd .flatpickr-weekdaycontainer>.flatpickr-weekday:nth-last-child(2){display:none!important;}
+.fp-wd .flatpickr-day.weekend{display:none!important;}
+.fp-wd .dayContainer{min-width:220px!important;max-width:220px!important;width:220px!important;}
+.fp-wd .flatpickr-rContainer,.fp-wd .flatpickr-weekdays,.fp-wd .flatpickr-weekdaycontainer{width:220px!important;}
+.fp-wd .flatpickr-day{max-width:44px!important;flex-basis:44px!important;}
+.fp-wd .flatpickr-weekday{max-width:44px!important;}
+.fp-wd .flatpickr-calendar{width:auto!important;}
 :root {
   --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;
   --accent:#0f766e;--accent-l:#f0fdfa;--warn:#d97706;--warn-l:#fffbeb;--danger:#dc2626;
@@ -98,7 +109,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
         <p style="font-size:12px;font-weight:600;margin:0 0 6px;">특정 날짜</p>
         <div id="r-once" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-          <input id="ro-date" type="date" class="inp" style="width:auto;">
+          <input id="ro-date" class="inp" style="width:auto;" placeholder="날짜 선택">
           <input id="ro-p" type="number" min="1" max="12" class="inp" style="width:68px;" placeholder="교시">
           <button class="btn btn-s" style="padding:6px 12px;" onclick="addR('once')">추가</button>
         </div>
@@ -171,7 +182,7 @@ hr.divline{border:none;border-top:2px dashed #cbd5e1;margin:4px 0;}
     <div style="display:grid;gap:14px;">
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">결강 날짜</label>
-        <input id="s-date" type="date" class="inp" onchange="onDateChg()">
+        <input id="s-date" class="inp">
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">결강 교시</label>
@@ -947,8 +958,15 @@ if(S.teachers.length){
 }
 buildPeriodsGrid();buildRestricted();
 const today=ds(new Date());
-document.getElementById('s-date').value=today;
-document.getElementById('s-date').min=today;
+const _koLocale={
+  weekdays:{shorthand:['일','월','화','수','목','금','토'],longhand:['일요일','월요일','화요일','수요일','목요일','금요일','토요일']},
+  months:{shorthand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],longhand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']},
+  firstDayOfWeek:1
+};
+const _fpOpts={dateFormat:'Y-m-d',locale:_koLocale,disable:[d=>d.getDay()===0||d.getDay()===6],
+  onReady(_,__,fp){fp.calendarContainer.classList.add('fp-wd');}};
+flatpickr('#s-date',{..._fpOpts,minDate:today,defaultDate:today,onChange(){onDateChg();}});
+flatpickr('#ro-date',_fpOpts);
 onDateChg();
 go(S.teachers.length&&S.myName?'search':'settings');
 fetchTimetable();
