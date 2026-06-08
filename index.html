@@ -785,10 +785,12 @@ function addDirectToCart(idx){
   const me=getTeacher(),absDay=getDay(_absDate);
   const myInfo=parseCls(getSlot(me,absDay,_absP));
   const swapSlot=cand.slots.find(s=>s.day===sel.day&&s.p===sel.p);
+  const myBusy=isBusyOnDate(S.myName,sel.date,sel.p);
+  const swapConflict=myBusy===true||(myBusy===null&&!!(me&&getSlot(me,sel.day,sel.p)));
   S.cart.push({
     id:Date.now(),
     main:{absDate:_absDate,absP:_absP,absGB:gbLbl(myInfo),absSub:myInfo?.sub||'',
-      swapDate:sel.date,swapDay:sel.day,swapP:sel.p,swapGB:gbLbl(swapSlot?.info),swapSub:swapSlot?.info?.sub||'',swapT:cand.t.dname},
+      swapDate:sel.date,swapDay:sel.day,swapP:sel.p,swapGB:gbLbl(swapSlot?.info),swapSub:swapSlot?.info?.sub||'',swapT:cand.t.dname,swapConflict},
     cascades:[]
   });
   renderCart();toast('장바구니에 추가됨 ✓');askMore();
@@ -869,7 +871,7 @@ function renderCart(){
             <td>${fmtDate(item.main.absDate)}</td><td>${item.main.absP}</td>
             <td>${item.main.absGB}</td><td>${esc(item.main.absSub)}</td>
             <td style="background:#f0fdfa;">⇒</td>
-            <td>${fmtDate(item.main.swapDate)}</td><td>${item.main.swapP}</td>
+            <td>${fmtDate(item.main.swapDate)}${item.main.swapConflict?'<br><span style="font-size:10px;color:#b45309;font-weight:700;">⚠️ 내 수업 충돌</span>':''}</td><td>${item.main.swapP}</td>
             <td>${item.main.swapGB}</td><td>${esc(item.main.swapSub)}</td>
             <td><strong>${esc(item.main.swapT)}</strong></td>
           </tr>
