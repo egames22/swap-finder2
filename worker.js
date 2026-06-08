@@ -58,7 +58,18 @@ function buildDates(data) {
       try {
         const dayArr = t542[ti][weekday];
         for (let p = 1; p < dayArr.length && p <= 8; p++) {
-          if (isBusy(dayArr[p])) row[p - 1] = 1;
+          const v = dayArr[p];
+          if (!isBusy(v)) continue;
+          const rawStr = String(typeof v === 'string' && v.startsWith('>') ? v.slice(1) : v);
+          const num = parseInt(rawStr);
+          if (!isNaN(num) && num > 0) {
+            const cc = num % 1000;
+            const g = Math.floor(cc / 100);
+            const b = cc % 100;
+            row[p - 1] = (g > 0 && b > 0) ? { g: String(g), b: String(b) } : 1;
+          } else {
+            row[p - 1] = 1;
+          }
         }
       } catch (_) {}
       rows.push(row);

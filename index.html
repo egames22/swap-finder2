@@ -422,13 +422,53 @@ function delR(type,idx){S.restricted[type].splice(idx,1);save();buildRestricted(
 function getTeacher(){return S.teachers.find(t=>t.dname===S.myName);}
 function getSlot(teacher,day,period){return teacher?.sch?.[day]?.[period-1]||'';}
 
-// 날짜별 실제 수업 유무 (JSON dayhour_t 기반): true=수업, false=빈 시간, null=데이터 없음
+// 날짜별 실제 수업 유무: true=수업, false=빈 시간, null=데이터 없음
 function isBusyOnDate(teacherName,date,period){
   const dayData=S.dateSchedule?.[date];
   if(!dayData)return null;
   const idx=S.teacherNames.indexOf(teacherName);
   if(idx<0)return null;
-  return dayData[idx]?.[period-1]===1;
+  const v=dayData[idx]?.[period-1];
+  if(v===undefined)return null;
+  return v!==0;
+}
+// 실시간 데이터에서 학년·반 정보 반환 (수업교환 포함)
+function getClassFromSchedule(teacherName,date,period){
+  const dayData=S.dateSchedule?.[date];
+  if(!dayData)return null;
+  const idx=S.teacherNames.indexOf(teacherName);
+  if(idx<0)return null;
+  const v=dayData[idx]?.[period-1];
+  return(v&&typeof v==='object')?v:null;
+}
+// 교사 CSV에서 특정 학년·반을 가르치는 과목명 찾기
+function findSubjectForTeacherClass(dname,g,b){
+  const t=S.teachers.find(x=>x.dname===dname);
+  if(!t)return'';
+  for(const day of DAYS){
+    const maxP=S.periods[day]||7;
+    for(let p=1;p<=maxP;p++){
+      const info=parseCls(t.sch[day]?.[p-1]);
+      if(info&&info.g===g&&info.b===b)return info.sub;
+    }
+  }
+  return'';
+}
+// 날짜·교시에 대한 내 학급 정보 (실시간 데이터 우선, 없으면 CSV)
+function getMyInfoForPeriod(date,period){
+  const me=getTeacher(),day=getDay(date);
+  if(!me||!day)return null;
+  const idx=S.teacherNames.indexOf(S.myName);
+  const dayData=S.dateSchedule?.[date];
+  if(dayData&&idx>=0){
+    // 실시간 데이터가 있는 날짜 → 항상 실시간 우선, CSV 무시
+    const v=dayData[idx]?.[period-1];
+    if(v&&typeof v==='object')
+      return{g:v.g,b:v.b,sub:findSubjectForTeacherClass(S.myName,v.g,v.b)};
+    return null;
+  }
+  // 실시간 데이터가 없는 날짜 → CSV 사용
+  return parseCls(getSlot(me,day,period));
 }
 
 function onDateChg(){
@@ -453,12 +493,8 @@ function onPeriodChg(){
   const slot=me?getSlot(me,day,pv):'';
   const hasCls=busy===null?!!slot:busy;
   if(!hasCls){box.style.display='none';return;}
-  const info=parseCls(slot);
-  if(info){
-    document.getElementById('my-cls-txt').textContent=`${gbLbl(info)} ${info.sub||''}`;
-  }else{
-    document.getElementById('my-cls-txt').textContent='수업 있음';
-  }
+  const info=getMyInfoForPeriod(dv,pv);
+  document.getElementById('my-cls-txt').textContent=info?`${gbLbl(info)} ${info.sub||''}`:'수업 있음';
   box.style.display='block';
 }
 
@@ -481,7 +517,7 @@ function findCandidates(absDate,absP){
   const absDay=getDay(absDate),me=getTeacher();
   if(!absDay||!me)return{direct:[],cascade:[]};
   const mySlot=getSlot(me,absDay,absP);
-  const myInfo=parseCls(mySlot);
+  let myInfo=getMyInfoForPeriod(absDate,absP);
   if(!myInfo){
     if(mySlot!=='수업')return{direct:[],cascade:[]};
     // 학급 상세 정보 없는 경우: 해당 교시 빈 교사 목록만 반환
@@ -552,8 +588,7 @@ let _absDate='',_absP=0;
 function findAndRender(absDate,absP){
   _absDate=absDate;_absP=absP;S.sel={};
   const{direct,cascade}=findCandidates(absDate,absP);
-  const day=getDay(absDate),me=getTeacher();
-  const myInfo=parseCls(me?getSlot(me,day,absP):'');
+  const myInfo=getMyInfoForPeriod(absDate,absP);
   document.getElementById('res-empty').style.display='none';
   const hdr=document.getElementById('res-hdr');
   hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;background:var(--accent);color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:16px;';
