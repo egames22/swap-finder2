@@ -368,7 +368,7 @@ function loadCsv(file){
     if(!t){toast('CSV 파싱 실패','err');return;}
     const prevName=S.myName;
     S.teachers=t;
-    S.teacherSource='csv';
+    S.teacherSource='user-csv';
     if(prevName&&t.some(x=>x.dname===prevName))S.myName=prevName;
     save();
     document.getElementById('csv-lbl').innerHTML=`<span class="tag tag-g">✓ ${t.length}명 로드됨</span>`;
@@ -934,9 +934,10 @@ function go(name){
 
 // INIT
 load();
-if(!S.teachers.length){
+// user-csv = 직접 업로드한 CSV; 그 외(builtin/csv/미설정)는 항상 최신 BUILTIN으로 갱신
+if(S.teacherSource !== 'user-csv' || !S.teachers.length) {
   S.teachers=BUILTIN_TEACHERS;
-  S.teacherSource='csv';
+  S.teacherSource='builtin';
   save();
 }
 if(S.teachers.length){
