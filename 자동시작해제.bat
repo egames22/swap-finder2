@@ -12,11 +12,12 @@ if exist "%DST%" (
     echo  [1] 로그인 자동실행 항목 없음
 )
 
+schtasks /delete /tn "수업교체찾기_일과추출" /f > nul 2>&1
 schtasks /delete /tn "수업교체찾기_08시" /f > nul 2>&1
 schtasks /delete /tn "수업교체찾기_12시" /f > nul 2>&1
 schtasks /delete /tn "수업교체찾기_14시" /f > nul 2>&1
 schtasks /delete /tn "수업교체찾기_17시" /f > nul 2>&1
-echo  [2] 매일 자동실행 해제 완료 (08:00 / 12:00 / 14:00 / 17:00)
+echo  [2] 매일 자동실행 해제 완료
 
 echo.
 pause
