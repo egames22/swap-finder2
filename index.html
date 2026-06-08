@@ -964,7 +964,8 @@ const _koLocale={
   firstDayOfWeek:1
 };
 const _fpOpts={dateFormat:'Y-m-d',locale:_koLocale,disable:[d=>d.getDay()===0||d.getDay()===6],
-  onReady(_,__,fp){fp.calendarContainer.classList.add('fp-wd');}};
+  onReady(_,__,fp){fp.calendarContainer.classList.add('fp-wd');},
+  onDayCreate(_,__,___,day){const d=day.dateObj.getDay();if(d===0||d===6){day.style.display='none';day.style.pointerEvents='none';}}};
 flatpickr('#s-date',{..._fpOpts,minDate:today,defaultDate:today,onChange(){onDateChg();}});
 flatpickr('#ro-date',_fpOpts);
 onDateChg();
