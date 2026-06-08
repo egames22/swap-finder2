@@ -824,16 +824,12 @@ function renderCart(){
 // TIMETABLE AUTO-FETCH
 async function fetchTimetable(){
   try{
-    const r=await fetch('./일과시간표.json?v='+Date.now());
+    const r=await fetch('/api/schedule');
     if(!r.ok)return;
     const data=await r.json();
     if(!data.teachers||!data.dates)return;
     S.teacherNames=data.teachers;
     S.dateSchedule=data.dates;
-    if(S.teacherSource!=='csv'){
-      S.teachers=data.teachers.map(name=>({name,dname:name,sch:{}}));
-      S.teacherSource='json';
-    }
     save();buildNameSel();
     document.getElementById('sync-lbl').textContent=`업데이트: ${data.generated||''}`;
   }catch(e){}
