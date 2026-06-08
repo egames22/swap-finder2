@@ -650,18 +650,12 @@ function selSlot(type,idx,day,p){
   const slot=candList[idx]?.slots.find(s=>s.day===day&&s.p===p);
   sel.info=slot?.info;
   const cand=candList[idx];
-  const me=getTeacher();
   const dates=getDatesFor(day);
   const chips=dates.slice(0,10).map(d=>{
-    // 사용자가 해당 날짜 교시에 수업 있으면 선택 불가
-    const myBusy=isBusyOnDate(S.myName,d,p);
-    const myConflict=myBusy===true||(myBusy===null&&!!(me&&getSlot(me,day,p)));
     // 대체 교사가 해당 날짜 교시에 수업 없으면 선택 불가 (실시간 확인된 경우)
     const theirBusy=cand?isBusyOnDate(cand.t.dname,d,p):null;
-    const theirConflict=theirBusy===false;
-    if(myConflict||theirConflict){
-      const why=myConflict?`내 ${p}교시 수업 있음`:`상대방 ${p}교시 수업 없음`;
-      return`<span class="chip chip-sm" title="${why}" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;text-decoration:line-through;padding:3px 8px;font-size:12px;">${fmtDate(d)}</span>`;
+    if(theirBusy===false){
+      return`<span class="chip chip-sm" title="상대방 ${p}교시 수업 없음" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;text-decoration:line-through;padding:3px 8px;font-size:12px;">${fmtDate(d)}</span>`;
     }
     return`<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}" onclick="selDate('${type}',${idx},'${d}')">${fmtDate(d)}</button>`;
   }).join('');
