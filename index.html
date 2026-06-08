@@ -824,7 +824,7 @@ function renderCart(){
 // TIMETABLE AUTO-FETCH
 async function fetchTimetable(){
   try{
-    const r=await fetch('/api/schedule');
+    const r=await fetch('https://swap-proxy.eastward2.workers.dev/api/schedule');
     if(!r.ok)return;
     const data=await r.json();
     if(!data.teachers||!data.dates)return;
