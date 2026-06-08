@@ -656,7 +656,7 @@ function selSlot(type,idx,day,p){
     // 상대방 수업 없는 날은 선택 불가
     const theirBusy=cand?isBusyOnDate(cand.t.dname,d,p):null;
     if(theirBusy===false){
-      return`<span class="chip chip-sm" title="상대방 ${p}교시 수업 없음" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;text-decoration:line-through;padding:3px 8px;font-size:12px;">${fmtDate(d)}</span>`;
+      return`<span class="chip chip-sm" title="상대방 ${p}교시 수업 변경으로 없어짐" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;text-decoration:line-through;padding:3px 8px;font-size:12px;">${fmtDate(d)}</span>`;
     }
     // 내 수업이 있는 날은 경고 표시 (선택은 가능)
     const myBusy=isBusyOnDate(S.myName,d,p);
