@@ -649,9 +649,22 @@ function selSlot(type,idx,day,p){
   const candList=type==='d'?findCandidates(_absDate,_absP).direct:findCandidates(_absDate,_absP).cascade;
   const slot=candList[idx]?.slots.find(s=>s.day===day&&s.p===p);
   sel.info=slot?.info;
+  const cand=candList[idx];
+  const me=getTeacher();
   const dates=getDatesFor(day);
-  const chips=dates.slice(0,10).map(d=>`<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}"
-      onclick="selDate('${type}',${idx},'${d}')">${fmtDate(d)}</button>`).join('');
+  const chips=dates.slice(0,10).map(d=>{
+    // 사용자가 해당 날짜 교시에 수업 있으면 선택 불가
+    const myBusy=isBusyOnDate(S.myName,d,p);
+    const myConflict=myBusy===true||(myBusy===null&&!!(me&&getSlot(me,day,p)));
+    // 대체 교사가 해당 날짜 교시에 수업 없으면 선택 불가 (실시간 확인된 경우)
+    const theirBusy=cand?isBusyOnDate(cand.t.dname,d,p):null;
+    const theirConflict=theirBusy===false;
+    if(myConflict||theirConflict){
+      const why=myConflict?`내 ${p}교시 수업 있음`:`상대방 ${p}교시 수업 없음`;
+      return`<span class="chip chip-sm" title="${why}" style="background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:not-allowed;text-decoration:line-through;padding:3px 8px;font-size:12px;">${fmtDate(d)}</span>`;
+    }
+    return`<button class="chip chip-d chip-sm" id="dc-${type}${idx}-${d}" onclick="selDate('${type}',${idx},'${d}')">${fmtDate(d)}</button>`;
+  }).join('');
   const dsel=document.getElementById(`dsel-${type}${idx}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 5px;">${day}요일 날짜 선택:</p>
     <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>`;
@@ -711,9 +724,17 @@ function selRslvSlot(parentIdx,ri,day,p){
   sel._rslv[ri]={day,p,date:null};
   const resolvers=sel._resolvers||[];
   const rslvSlotInfo=resolvers[ri]?.slots.find(s=>s.day===day&&s.p===p)?.info;
+  const cascadeCand=findCandidates(_absDate,_absP).cascade[parentIdx];
+  const conflictTeacher=cascadeCand?.t;
   const dates=getDatesFor(day);
-  const chips=dates.slice(0,10).map(d=>`<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}"
-      onclick="selRslvDate(${parentIdx},${ri},'${d}')">${fmtDate(d)}</button>`).join('');
+  const chips=dates.slice(0,10).map(d=>{
+    // 연쇄 교체 교사가 해당 날짜 교시에 수업 있으면 선택 불가
+    const theirBusy=conflictTeacher?isBusyOnDate(conflictTeacher.dname,d,p):null;
+    const csvConflict=!!(conflictTeacher&&getSlot(conflictTeacher,day,p));
+    if(theirBusy===true||(theirBusy===null&&csvConflict))
+      return`<span class="chip chip-sm" title="${p}교시 수업 있음" style="background:#fef9ee;color:#b45309;border-color:#fde68a;cursor:not-allowed;text-decoration:line-through;padding:3px 8px;font-size:12px;">${fmtDate(d)}</span>`;
+    return`<button class="chip chip-w chip-sm" id="rdc-${parentIdx}-${ri}-${d}" onclick="selRslvDate(${parentIdx},${ri},'${d}')">${fmtDate(d)}</button>`;
+  }).join('');
   const dsel=document.getElementById(`rdsel-${parentIdx}-${ri}`);
   dsel.innerHTML=`<p style="font-size:11px;font-weight:700;color:var(--muted);margin:0 0 4px;">${day}요일:</p>
     <div style="display:flex;flex-wrap:wrap;gap:4px;">${chips}</div>`;
