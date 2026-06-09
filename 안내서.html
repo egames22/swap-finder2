@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수업교체 찾기 — 사용 안내서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;
+  --accent:#0f766e;--accent-l:#f0fdfa;--warn:#d97706;--warn-l:#fffbeb;--danger:#dc2626;
+}
+*{box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* 상단 바 */
+.topbar{background:var(--accent);color:#fff;padding:14px 20px;}
+.topbar h1{font-size:17px;font-weight:700;}
+.topbar p{font-size:11px;opacity:.75;margin-top:3px;}
+
+/* 본문 */
+.wrap{max-width:860px;margin:0 auto;padding:28px 20px 80px;}
+
+/* 섹션 카드 */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;margin-bottom:24px;}
+
+/* 섹션 제목 */
+.section-title{
+  display:flex;align-items:center;gap:10px;
+  font-size:16px;font-weight:700;color:var(--accent);
+  margin-bottom:18px;padding-bottom:12px;
+  border-bottom:2px solid var(--accent-l);
+}
+.num{
+  background:var(--accent);color:#fff;
+  border-radius:50%;width:28px;height:28px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0;
+}
+
+/* 스크린샷 */
+.screenshot{
+  width:100%;max-width:700px;display:block;
+  border:1px solid var(--border);border-radius:10px;
+  margin:0 auto 18px;
+}
+
+/* 설명 텍스트 */
+.desc{font-size:14px;line-height:1.85;color:var(--text);}
+.desc p{margin-bottom:10px;}
+.desc p:last-child{margin-bottom:0;}
+.desc strong{color:var(--text);}
+.desc em{font-style:normal;color:var(--accent);font-weight:600;}
+.desc s{color:var(--muted);}
+
+/* 번호 목록 */
+.steps{list-style:none;padding:0;margin:10px 0 12px;}
+.steps li{
+  display:flex;gap:10px;align-items:flex-start;
+  margin-bottom:10px;font-size:14px;line-height:1.7;
+}
+.steps li::before{
+  content:attr(data-n);
+  background:var(--accent);color:#fff;
+  border-radius:50%;min-width:22px;height:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px;
+}
+
+/* 글머리 목록 */
+.ul{list-style:none;padding:0;margin:10px 0 12px;}
+.ul li{
+  display:flex;gap:8px;align-items:flex-start;
+  margin-bottom:8px;font-size:14px;line-height:1.7;
+}
+.ul li::before{content:"·";color:var(--accent);font-weight:700;flex-shrink:0;}
+
+/* 팁 박스 */
+.tip{
+  background:var(--accent-l);
+  border-left:4px solid var(--accent);
+  border-radius:0 8px 8px 0;
+  padding:12px 16px;margin:14px 0;
+  font-size:13px;line-height:1.8;
+}
+.tip strong{color:var(--accent);}
+
+/* 경고 박스 */
+.warn{
+  background:var(--warn-l);
+  border-left:4px solid var(--warn);
+  border-radius:0 8px 8px 0;
+  padding:12px 16px;margin:14px 0;
+  font-size:13px;line-height:1.8;
+}
+
+/* 뱃지 */
+.badge{
+  display:inline-flex;align-items:center;
+  padding:2px 9px;border-radius:5px;
+  font-size:12px;font-weight:700;vertical-align:middle;
+}
+.badge-g{background:#dcfce7;color:#16a34a;}
+.badge-w{background:#fef3c7;color:#b45309;}
+
+/* 토글 버튼 */
+.toggle-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:none;border:1.5px solid var(--accent);
+  color:var(--accent);border-radius:8px;
+  padding:7px 16px;font-size:13px;font-weight:600;
+  cursor:pointer;margin-top:14px;transition:background .15s;
+}
+.toggle-btn:hover{background:var(--accent-l);}
+.toggle-body{
+  display:none;margin-top:14px;
+  border-top:1px dashed var(--border);padding-top:16px;
+}
+.toggle-body.open{display:block;}
+
+/* 구분선 */
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📚 수업교체 찾기 — 사용 안내서</h1>
+  <p>교사를 위한 수업교체 탐색 방법 안내</p>
+</div>
+
+<div class="wrap">
+
+  <!-- ① 설정 안내 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num">⚙</span> 설정 안내
+    </div>
+    <img src="images/guide-설정.png" alt="설정 화면" class="screenshot">
+    <div class="desc">
+      <p><strong>① 내 이름 선택</strong><br>
+      상단 드롭다운에서 본인의 이름을 선택합니다. 이후 탐색 시 내 수업 정보가 자동으로 표시됩니다.</p>
+      <hr class="divider">
+      <p><strong>② 교체 제외 교시 설정</strong><br>
+      교체 후보에서 제외할 교시를 미리 등록해 두면 탐색 결과에서 해당 교시는 표시되지 않습니다.</p>
+      <div class="tip">
+        <strong>예시</strong><br>
+        · 월요일 1교시 — 자율활동으로 제외<br>
+        · 수요일 5교시, 수요일 6교시 — 창의적 체험 활동으로 제외<br>
+        · 수요일 1교시, 목요일 1교시 — 개인이 원하지 않는 시간을 제외할 수도 있습니다.
+      </div>
+      <hr class="divider">
+      <p><strong>③ 특정 날짜 제외</strong><br>
+      매주 반복이 아닌 특정 날짜의 특정 교시만 제외하려면 오른쪽 <em>특정 날짜</em> 항목에 날짜와 교시를 입력 후 추가합니다.</p>
+    </div>
+  </div>
+
+  <!-- ② 탐색 안내 01 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num">1</span> 탐색 안내 — 결강 정보 입력
+    </div>
+    <img src="images/guide-탐색01.png" alt="결강 정보 입력 화면" class="screenshot">
+    <div class="desc">
+      <ul class="steps">
+        <li data-n="1">결강 날짜를 선택합니다.</li>
+        <li data-n="2">결강 교시를 선택합니다. 해당 교시에 내 수업이 있으면 <em>내 수업</em> 정보가 자동으로 표시됩니다.</li>
+        <li data-n="3"><em>교체 가능 교사 탐색</em> 버튼을 클릭합니다.</li>
+      </ul>
+      <div class="tip">내 수업 정보가 표시되지 않으면 해당 교시에 수업이 없는 것입니다. 날짜와 교시를 다시 확인해 주세요.</div>
+    </div>
+  </div>
+
+  <!-- ③ 탐색 안내 02 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num">2</span> 탐색 안내 — 교체 교사 선택
+    </div>
+    <img src="images/guide-탐색02.png" alt="교체 교사 목록 화면" class="screenshot">
+    <div class="desc">
+      <p>같은 학급 수업을 담당하는 교사 목록이 나타납니다. 각 항목의 의미는 아래와 같습니다.</p>
+      <ul class="ul">
+        <li><span class="badge badge-g">✓ 가능</span> &nbsp;결강 교시에 수업이 없어 바로 교체 가능한 교사</li>
+        <li><span class="badge badge-w">⚠️ 충돌</span> &nbsp;결강 교시에 다른 수업이 있는 교사 — 연쇄 교체 가능</li>
+        <li><s>06월17일(수)</s> 와 같이 <strong>취소선</strong>이 있는 날짜 — 교체 제외 설정된 날짜로 선택 불가</li>
+        <li><strong>⚠️ 표시 날짜</strong> — 해당 날짜에 다른 수업과 충돌이 있는 날짜</li>
+      </ul>
+      <hr class="divider">
+      <ul class="steps">
+        <li data-n="1">원하는 교사의 <em>대체수업 교시</em> 버튼을 클릭합니다.</li>
+        <li data-n="2">아래 펼쳐지는 날짜 목록에서 <em>대체수업 날짜</em>를 클릭합니다.</li>
+        <li data-n="3">선택이 완료되면 <em>장바구니 담기</em> 버튼이 활성화됩니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ④ 탐색 안내 03 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num">3</span> 탐색 안내 — 장바구니 담기
+    </div>
+    <img src="images/guide-탐색03.png" alt="장바구니 담기 화면" class="screenshot">
+    <div class="desc">
+      <p>교사와 날짜를 선택한 후 <em>장바구니 담기</em> 버튼을 누르면 해당 교체 항목이 저장됩니다.</p>
+      <div class="tip">
+        <strong>여러 교시를 한 번에 교체하려면</strong><br>
+        담기 후 나타나는 <em>"추가로 교체할 수업이 있나요?"</em> 팝업에서 <strong>탐색 계속</strong>을 클릭하면 결과 화면을 유지한 채 추가 교시를 이어서 탐색할 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 탐색 안내 04 — 연쇄 교체 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num">4</span> 탐색 안내 — 연쇄 교체
+    </div>
+    <img src="images/guide-탐색04.png" alt="연쇄 교체 화면" class="screenshot">
+    <div class="desc">
+      <p>결강 교시에 다른 수업이 있는 교사(<span class="badge badge-w">⚠️ 충돌</span>)도 <strong>연쇄 교체</strong>를 통해 교체할 수 있습니다.</p>
+      <button class="toggle-btn" onclick="toggleDetail(this)">▶ 연쇄 교체 방법 자세히 보기</button>
+      <div class="toggle-body">
+        <ul class="steps">
+          <li data-n="1">충돌 교사 항목에서 <em>대체수업 교시</em>를 선택합니다.<br>
+            <span style="font-size:12px;color:var(--muted);">결강일에 해당 교시 대신 가르칠 수업 교시입니다.</span></li>
+          <li data-n="2"><em>대체수업 날짜</em>를 선택하면 아래에 <strong>연쇄 교체 교사</strong> 목록이 펼쳐집니다.</li>
+          <li data-n="3">연쇄 교체 목록에서 <span class="badge badge-g">✓ 가능</span> 표시 교사를 찾아 날짜를 선택합니다.</li>
+          <li data-n="4">모든 선택이 완료되면 <em>장바구니 담기</em>를 클릭합니다.</li>
+        </ul>
+        <div class="warn">
+          연쇄 교체 목록에도 충돌 교사만 있다면 다른 교사 또는 다른 교시를 선택해 보세요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ 장바구니 안내 -->
+  <div class="section">
+    <div class="section-title">
+      <span class="num">🛒</span> 장바구니 안내
+    </div>
+    <img src="images/guide-장바구니.png" alt="장바구니 화면" class="screenshot">
+    <div class="desc">
+      <p>장바구니 탭에서 교체 항목 전체를 확인할 수 있습니다. 각 항목은 <strong>담당수업(결강)</strong>과 <strong>대체수업</strong>이 표로 정리되어 있습니다.</p>
+      <div class="tip">
+        <strong>대체수업계획서로 바로 활용하기</strong><br>
+        장바구니의 표 영역을 <strong>드래그하여 복사(Ctrl+C)</strong>한 뒤, 대체수업계획서 양식에 <strong>붙여넣기(Ctrl+V)</strong>하면 표 형식이 그대로 입력됩니다. 별도 입력 없이 바로 제출할 수 있습니다.
+      </div>
+      <p>불필요한 항목은 각 항목 우측의 <strong>✕ 삭제</strong> 버튼으로 제거하거나, 상단 <strong>전체 삭제</strong> 버튼으로 모두 지울 수 있습니다.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleDetail(btn){
+  const body = btn.nextElementSibling;
+  const open = body.classList.toggle('open');
+  btn.textContent = open ? '▼ 연쇄 교체 방법 접기' : '▶ 연쇄 교체 방법 자세히 보기';
+}
+</script>
+</body>
+</html>
